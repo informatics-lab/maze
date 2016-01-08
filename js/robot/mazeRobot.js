@@ -66,7 +66,7 @@ Robot.prototype.getNewOpenings = function(cell) {
     console.log("robot is in a cell with openings: ", allOpenings);
     var newOpenings = [];
     for (var opening in allOpenings) {
-        if (allOpenings[opening] && opening != robot.turnToNewDirection(robot.facing, 180)) {
+        if (allOpenings[opening] && opening != robot.getNewDirection(robot.facing, 180)) {
             newOpenings.push(opening);
         } 
     }
@@ -79,7 +79,7 @@ Robot.prototype.lookToDirection = function(direction) {
 	return this.maze.look(direction);
 }
 
-Robot.prototype.turnToNewDirection = function(currentDirection, turn) {
+Robot.prototype.getNewDirection = function(currentDirection, turn) {
 	var directions = ['north', 'east', 'south', 'west'];
     var indexChange = turn / 90;
     var currentDirectionIndex = 0;

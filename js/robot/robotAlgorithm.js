@@ -7,7 +7,7 @@ var RobotAlgorithm = function(robot) {
 // Add a couple of methods to RobotAlgorithm.prototype
 RobotAlgorithm.prototype.chooseDirectionAtDeadEnd = function(robot){
 	// default implementation for robot behaviour at a dead end - turn around!
-	return robot.turnToNewDirection(robot.facing, 180);
+	return robot.getNewDirection(robot.facing, 180);
 };
 
 RobotAlgorithm.prototype.chooseDirectionAtStraightOrTurn = function(openings, robot){

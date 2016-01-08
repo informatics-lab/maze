@@ -17,9 +17,9 @@ WallFollowerRobotAlgorithm.prototype.constructor = WallFollowerRobotAlgorithm;
 
 // Replace the "chooseDirectionAtJunction" method
 WallFollowerRobotAlgorithm.prototype.chooseDirectionAtJunction = function(openings, robot){
-	var newDirection = robot.turnToNewDirection(robot.facing, 90);
+	var newDirection = robot.getNewDirection(robot.facing, 90);
 	while (openings.indexOf(newDirection) == -1) {
-	    newDirection = robot.turnToNewDirection(newDirection, -90);
+	    newDirection = robot.getNewDirection(newDirection, -90);
 	}
 	
 	return newDirection;
