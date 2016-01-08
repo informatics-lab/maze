@@ -1,0 +1,27 @@
+#optionsDiv {
+	background-color: #B0C4DE;
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+#mazeDisplay {
+	margin-top: 15px;
+}
+
+#stepsDiv {
+	margin-top: 10px;
+}
+
+#stepsSpan {
+	font-weight: 600;
+}
+
+.label {
+	margin-right: 10px;
+	margin-left: 10px;
+	font-weight: 600;
+}
+
+input, select {
+	margin-left: 5px;
+}
