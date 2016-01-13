@@ -8,6 +8,8 @@ var Robot = function(maze, mazeViewer, robotAlgorithm, robotDelay) {
 	this.facing = 'south';
 	this.nSteps = 0;
 	this.stop = false;
+	
+	
 }
 
 Robot.prototype.trySolvingMaze = function() {

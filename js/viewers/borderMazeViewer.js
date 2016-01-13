@@ -8,7 +8,7 @@ function BorderMazeViewer(maze, displayCodes) {
   this.displayCodes = displayCodes;
   this.mazeDisplayed = false;
   
-  this.tableWidth = this.maze.x * 10;
+  this.tableWidth = this.maze.x * 8;
   
   this.currentDisplayCell;
   this.prevDisplayCell;
@@ -33,10 +33,10 @@ BorderMazeViewer.prototype.displayMaze = function(){
         row = table.insertRow();
         for (var i = 0; i < this.maze.x; i++) {
            
-            noBorder = '1px dotted black';
+            noBorder = '1px dotted #CCC';
             
             cell = row.insertCell();
-            cell.style.border = '2px solid black';
+            cell.style.border = '1px solid black';
             cell.style.padding = 0;
             cell.style.fontSize = '4pt';
            
@@ -86,3 +86,23 @@ BorderMazeViewer.prototype.updateRobotDisplay = function(cell) {
 	
 	this.prevDisplayCell = this.currentDisplayCell;
 };
+
+// Replace the "resetMazeView" method
+BorderMazeViewer.prototype.resetMazeView = function() {
+	var displayCell;
+	for (var j = 0; j < this.maze.y; j++) {
+        for (var i = 0; i < this.maze.x; i++) {
+      		displayCell = document.getElementById(i + "," + j);
+      		displayCell.style.backgroundColor = 'white';
+      		displayCell.line = false;
+      	}
+	}
+	
+	// set up the current display cell ready for if/when we need to display the maze being solved
+    entryCellId = this.maze.cells[0][0].id
+    this.currentDisplayCell = document.getElementById(entryCellId);
+    
+    this.prevDisplayCell = null;
+    
+    this.mazeDisplayed = false;
+}

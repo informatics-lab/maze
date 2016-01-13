@@ -4,6 +4,14 @@
 	padding-bottom: 5px;
 }
 
+#robotOptionsDiv {
+	margin-top: 5px;
+	background-color: #B0C4DE;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	display: none;
+}
+
 #mazeDisplay {
 	margin-top: 15px;
 }

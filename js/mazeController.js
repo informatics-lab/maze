@@ -1,32 +1,55 @@
 var robot;
+var maze;
+var userChoices;
+var mazeViewer;
 
-function go(mazeWidth, mazeHeight) {
+function generateMaze() {
+	init(proceed);
+}
+
+function solveMaze() {
+	init(solve);
+}
+
+function init(fn) {
 
 	if (robot) {
 		robot.quit();
-		
+		console.log("told robot to quit, about to call next function after a delay");
 		setTimeout(function() { 
-        	proceed()
+        	fn.call(this);
     	}, robot.updateDelay);
 	} else {
-		proceed();
+		fn.call(this);
 	}	
 }
 
 function proceed() {
+	document.getElementById('robotOptionsDiv').style.display = 'block';
+
 	// clear away any pre-existing maze
 	document.getElementById("mazeDisplay").innerHTML = "";
 	
-	var options = getUserOptionChoices();
+	userChoices = getUserOptionChoices();
 
-	var maze = new Maze(options.mazeWidth, options.mazeHeight);
+	maze = new Maze(userChoices.mazeWidth, userChoices.mazeHeight);
 
-	var mazeViewer = getMazeViewer(options.mazeDisplay, maze);
+	mazeViewer = getMazeViewer(userChoices.mazeDisplay, maze);
+	mazeViewer.displayMaze();
+}
 
+function solve() {
+	console.log("starting solve function");
+	userChoices = getUserOptionChoices();
+	
+	mazeViewer.resetMazeView();
+	maze.reset();
+	document.getElementById("mazeDisplay").innerHTML = "";
+	
 	var mazeForRobot = new FirstPersonMaze(maze);
 
-	var robotAlgorithm = getRobotAlgorithm(options.robotAlgorithm);
-	robot = new Robot(mazeForRobot, mazeViewer, robotAlgorithm, options.robotDelay);
+	var robotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm);
+	robot = new Robot(mazeForRobot, mazeViewer, robotAlgorithm, userChoices.robotDelay);
 	robot.trySolvingMaze();
 }
 

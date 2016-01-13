@@ -115,6 +115,25 @@ var Maze = function(x, y) {
     //this.cells[this.x - 1][this.y - 1].openings.east = true;
 }
 
+Maze.prototype.reset = function() {
+	for (var i = 0; i < this.x; i++) {
+        for (var j = 0; j < this.y; j++) {           
+            var cell = this.cells[i][j];
+            
+            // remove any cell properties that aren't in the 'core' list. This ensures
+            // that any properties added by previous robots are removed ready for new robot
+            var coreProperties = ['visited', 'isExit', 'isEntry', 'openings', 'id'];
+            
+            for (var property in cell) {
+            	if (coreProperties.indexOf(property) == -1) {
+            		// remove this non-core property
+            		delete cell[property];
+            	}
+			}
+        }
+    }
+}
+
 
 
 
