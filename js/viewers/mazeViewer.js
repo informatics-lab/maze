@@ -11,7 +11,3 @@ MazeViewer.prototype.displayMaze = function(){
 MazeViewer.prototype.updateRobotDisplay = function(prevCell, currentCell){
   console.log("abstract method for updating the robot display");
 };
-
-
-
-
