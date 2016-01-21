@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "out": "mazeCompiled.js",
+        "outDir": "../compiledJs",
 		"target": "ES3"
     }
 }
