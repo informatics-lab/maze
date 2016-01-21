@@ -39,7 +39,7 @@ class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
 		var nonVisitedOpenings = [];
 		var lineOpening
 		for (var i = 0; i < openings.length; i++) {
-			var cellThroughThatOpening = robot.lookToDirection(openings[i])[0];
+			var cellThroughThatOpening = this.robot.lookToDirection(openings[i])[0];
 			if (!cellThroughThatOpening.robotVisited) {
 				nonVisitedOpenings.push(openings[i]);
 			}

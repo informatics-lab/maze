@@ -1,18 +1,19 @@
-/*
-interface Cell {
-	visited: boolean;
-	isExit: boolean;
-	isEntry: boolean;
-	openings: cellOpenings;
-	id: string;
+class CellOpenings {
+	north: boolean = false;
+	east: boolean = false;
+	south: boolean = false;
+	west: boolean = false;
+
+	constructor() {
+
+	}
 }
-*/
 
 class Cell {
 	visited: boolean;
 	isExit: boolean;
 	isEntry: boolean;
-	openings: cellOpenings;
+	openings: CellOpenings;
 	id: string;
 
 	constructor(i: number, j: number) {
@@ -20,18 +21,8 @@ class Cell {
 		this.visited = false;
 		this.isExit = false;
 		this.isEntry = false;
-		this.openings = {
-			north: false,
-			east: false,
-			south: false,
-			west: false
-		};
+		this.openings = new CellOpenings();
 	}
 }
 
-interface cellOpenings {
-	north: boolean;
-	east: boolean;
-	south: boolean;
-	west: boolean;
-}
+

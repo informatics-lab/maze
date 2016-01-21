@@ -77,7 +77,7 @@ class Robot {
         }
     }
 
-    getNewOpenings(cell): cellOpenings[] {
+    getNewOpenings(cell): CellOpenings[] {
         var allOpenings = cell.openings;
         console.log("robot is in a cell with openings: ", allOpenings);
         var newOpenings = [];

@@ -22,7 +22,7 @@ abstract class RobotAlgorithm {
 	chooseDirection(cell: Cell) {
 		var direction: string;
 
-		var newOpenings: cellOpenings[] = this.robot.getNewOpenings(cell);
+		var newOpenings: CellOpenings[] = this.robot.getNewOpenings(cell);
 
 		if (newOpenings.length == 0) {
 			direction = this.chooseDirectionAtDeadEnd();
