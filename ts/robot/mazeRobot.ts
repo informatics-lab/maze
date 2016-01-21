@@ -52,7 +52,7 @@ class Robot {
     }
 
     private _robotLoop(): void {
-        var cell: cell = this.maze.getCurrentCell();
+        var cell: Cell = this.maze.getCurrentCell();
     
         // robot logic to decide which direction to face next 
         this.facing = this.robotAlgorithm.chooseDirection(cell);
@@ -91,7 +91,7 @@ class Robot {
         return newOpenings;
     }
 
-    lookToDirection(direction: string): cell[] {
+    lookToDirection(direction: string): Cell[] {
         return this.maze.look(direction);
     }
 

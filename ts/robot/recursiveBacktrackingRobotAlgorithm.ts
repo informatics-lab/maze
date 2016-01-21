@@ -6,11 +6,9 @@
 // here we're using the 'recursive backtracker' algorithm
 // ([add reference here)
 
-/*
-
 class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
 
-	currentCell: cell = null;
+	currentCell: Cell = null;
 	backtracking: boolean = false;
 
 	constructor(robot: Robot) {
@@ -65,7 +63,7 @@ class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
 		return direction;
 	}
 
-	chooseDirection(cell: cell) {
+	chooseDirection(cell: Cell) {
 		this.currentCell = cell;
 		this.currentCell.robotVisited = true;
 	
@@ -85,8 +83,6 @@ class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
 		return direction;
 	}
 }
-
-*/
 
 
 

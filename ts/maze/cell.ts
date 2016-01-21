@@ -1,5 +1,5 @@
 /*
-interface cell {
+interface Cell {
 	visited: boolean;
 	isExit: boolean;
 	isEntry: boolean;
@@ -8,7 +8,7 @@ interface cell {
 }
 */
 
-class cell {
+class Cell {
 	visited: boolean;
 	isExit: boolean;
 	isEntry: boolean;

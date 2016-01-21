@@ -4,7 +4,7 @@ class Maze {
 
 	x: number;
 	y: number;
-	cells: cell[][] = [];
+	cells: Cell[][] = [];
 
 	private nCells: number;
 	private nVisitedCells: number;
@@ -13,6 +13,8 @@ class Maze {
 	constructor(x: number, y: number) {
 		this.x = x;
 		this.y = y;
+		this.nCells = x * y;
+		this.nVisitedCells = 0;
 
 		if (this.nCells < 1) {
         	alert("illegal maze dimensions");
@@ -50,7 +52,7 @@ class Maze {
 	    for (var i = 0; i < this.x; i++) {
 	        this.cells[i] = [];
 	        for (var j = 0; j < this.y; j++) {           
-				var cell = new cell(i, j);
+				var cell = new Cell(i, j);
 	            this.cells[i].push(cell);
 	        }
 	    }

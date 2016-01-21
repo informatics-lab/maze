@@ -8,15 +8,17 @@ interface coordinates {
 
 class FirstPersonMaze {
 
-	private _cells: cell[][];
-	private _currentCoordinates: coordinates = { x: 0, y: 0 };
-	private _currentCell = this._cells[this._currentCoordinates.x][this._currentCoordinates.y];
+	private _cells: Cell[][];
+	private _currentCoordinates;
+	private _currentCell: Cell
 
 	constructor(thirdPersonMaze: Maze) {
 		this._cells = thirdPersonMaze.cells;
+		this._currentCoordinates = { x: 0, y: 0 };
+		this._currentCell = this._cells[this._currentCoordinates.x][this._currentCoordinates.y];
 	}
 
-	getCurrentCell(): cell {
+	getCurrentCell(): Cell {
 		return this._currentCell;
 	}
 
@@ -33,7 +35,7 @@ class FirstPersonMaze {
 
 	look(direction: string) {
 		// get array of cells in a straight line in this direction until we come to a wall
-		var lookCells: cell[] = [];
+		var lookCells: Cell[] = [];
 		var coordinates: coordinates = {
 			x: this._currentCoordinates.x,
 			y: this._currentCoordinates.y

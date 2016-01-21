@@ -12,7 +12,7 @@ abstract class MazeViewer {
 
 	abstract displayMaze(): void;
 
-	abstract updateRobotDisplay(cell: cell): void;
+	abstract updateRobotDisplay(cell: Cell): void;
 
 	abstract resetMazeView(): void;
 }

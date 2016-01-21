@@ -19,7 +19,7 @@ abstract class RobotAlgorithm {
 
 	abstract chooseDirectionAtJunction(openings);
 
-	chooseDirection(cell: cell) {
+	chooseDirection(cell: Cell) {
 		var direction: string;
 
 		var newOpenings: cellOpenings[] = this.robot.getNewOpenings(cell);

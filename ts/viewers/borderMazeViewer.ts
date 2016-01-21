@@ -65,7 +65,7 @@ class BorderMazeViewer extends MazeViewer {
     this.currentDisplayCell = document.getElementById(entryCellId);
   }
 
-  updateRobotDisplay(cell: cell): void {
+  updateRobotDisplay(cell: Cell): void {
     this.currentDisplayCell = document.getElementById(cell.id);
 
     if (this.prevDisplayCell) {

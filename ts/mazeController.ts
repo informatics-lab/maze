@@ -8,7 +8,7 @@
 /// <reference path="viewers/mazeViewer.ts" />
 /// <reference path="viewers/borderMazeViewer.ts" />
 
-var robot;
+var robot: Robot;
 var maze: Maze;
 var userChoices;
 var mazeViewer: MazeViewer;
@@ -43,6 +43,7 @@ function proceed() {
 	userChoices = getUserOptionChoices();
 
 	maze = new Maze(userChoices.mazeWidth, userChoices.mazeHeight);
+	console.log(maze);
 
 	mazeViewer = getMazeViewer(userChoices.mazeDisplay, maze);
 	mazeViewer.displayMaze();
@@ -61,9 +62,6 @@ function solve() {
 	robot = new Robot(mazeForRobot, mazeViewer, userChoices.robotDelay);
 	var robotAlgorithm: RobotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm, robot);
 	robot.setRobotAlgorithm(robotAlgorithm);
-
-
-	robot.fake();
 
 	robot.trySolvingMaze();
 }
@@ -117,7 +115,7 @@ function getRobotAlgorithm(algorithmType: string, robot: Robot) {
 		return new RandomMouseRobotAlgorithm(robot);
 	} else if (algorithmType == "wallFollower") {
 		return new WallFollowerRobotAlgorithm(robot);
-	} //else if (algorithmType == "recursiveBacktracking") {
-	// 	return new RecursiveBacktrackingRobotAlgorithm(robot);
-	// }
+	} else if (algorithmType == "recursiveBacktracking") {
+		return new RecursiveBacktrackingRobotAlgorithm(robot);
+	}
 }

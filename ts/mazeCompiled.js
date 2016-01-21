@@ -1,5 +1,5 @@
 /*
-interface cell {
+interface Cell {
     visited: boolean;
     isExit: boolean;
     isEntry: boolean;
@@ -7,8 +7,8 @@ interface cell {
     id: string;
 }
 */
-var cell = (function () {
-    function cell(i, j) {
+var Cell = (function () {
+    function Cell(i, j) {
         this.id = i + "," + j;
         this.visited = false;
         this.isExit = false;
@@ -20,7 +20,7 @@ var cell = (function () {
             west: false
         };
     }
-    return cell;
+    return Cell;
 })();
 /// <reference path="cell.ts" />
 var Maze = (function () {
@@ -28,6 +28,8 @@ var Maze = (function () {
         this.cells = [];
         this.x = x;
         this.y = y;
+        this.nCells = x * y;
+        this.nVisitedCells = 0;
         if (this.nCells < 1) {
             alert("illegal maze dimensions");
             return;
@@ -60,7 +62,7 @@ var Maze = (function () {
         for (var i = 0; i < this.x; i++) {
             this.cells[i] = [];
             for (var j = 0; j < this.y; j++) {
-                var cell = new cell(i, j);
+                var cell = new Cell(i, j);
                 this.cells[i].push(cell);
             }
         }
@@ -141,9 +143,9 @@ var Maze = (function () {
 /// <reference path="../maze/maze.ts" />
 var FirstPersonMaze = (function () {
     function FirstPersonMaze(thirdPersonMaze) {
+        this._cells = thirdPersonMaze.cells;
         this._currentCoordinates = { x: 0, y: 0 };
         this._currentCell = this._cells[this._currentCoordinates.x][this._currentCoordinates.y];
-        this._cells = thirdPersonMaze.cells;
     }
     FirstPersonMaze.prototype.getCurrentCell = function () {
         return this._currentCell;
@@ -365,40 +367,32 @@ var WallFollowerRobotAlgorithm = (function (_super) {
 /// <reference path="mazeRobot" />
 // here we're using the 'recursive backtracker' algorithm
 // ([add reference here)
-/*
-
-class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
-
-    currentCell: cell = null;
-    backtracking: boolean = false;
-
-    constructor(robot: Robot) {
-        super(robot);
+var RecursiveBacktrackingRobotAlgorithm = (function (_super) {
+    __extends(RecursiveBacktrackingRobotAlgorithm, _super);
+    function RecursiveBacktrackingRobotAlgorithm(robot) {
+        _super.call(this, robot);
+        this.currentCell = null;
+        this.backtracking = false;
     }
-
-    chooseDirectionAtDeadEnd() {
+    RecursiveBacktrackingRobotAlgorithm.prototype.chooseDirectionAtDeadEnd = function () {
         // update backtracking
         this.backtracking = true;
-    
         // use call to super to return direction
-        return super.chooseDirectionAtDeadEnd();
-    }
-
-    chooseDirectionAtStraightOrTurn(openings) {
+        return _super.prototype.chooseDirectionAtDeadEnd.call(this);
+    };
+    RecursiveBacktrackingRobotAlgorithm.prototype.chooseDirectionAtStraightOrTurn = function (openings) {
         // update backtracking
         if (this.currentCell.isEntry && this.backtracking) {
             this.backtracking = false;
         }
-    
         // use call to super to return direction
-        return super.chooseDirectionAtStraightOrTurn(openings);
-    }
-
-    chooseDirectionAtJunction(openings) {
+        return _super.prototype.chooseDirectionAtStraightOrTurn.call(this, openings);
+    };
+    RecursiveBacktrackingRobotAlgorithm.prototype.chooseDirectionAtJunction = function (openings) {
         // pick random direction that is open and we haven't already visited
         var direction;
         var nonVisitedOpenings = [];
-        var lineOpening
+        var lineOpening;
         for (var i = 0; i < openings.length; i++) {
             var cellThroughThatOpening = robot.lookToDirection(openings[i])[0];
             if (!cellThroughThatOpening.robotVisited) {
@@ -408,11 +402,11 @@ class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
                 lineOpening = openings[i];
             }
         }
-
         if (nonVisitedOpenings.length == 0) {
             // we've been down all routes. We're backtracking and need to follow the route with the line
             direction = lineOpening;
-        } else {
+        }
+        else {
             // we've got at least one route that hasn't yet been explored. Pick one at random
             var randomDirection = nonVisitedOpenings[Math.floor(Math.random() * nonVisitedOpenings.length)];
             direction = randomDirection;
@@ -420,32 +414,27 @@ class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
                 this.backtracking = false;
             }
         }
-
         return direction;
-    }
-
-    chooseDirection(cell: cell) {
+    };
+    RecursiveBacktrackingRobotAlgorithm.prototype.chooseDirection = function (cell) {
         this.currentCell = cell;
         this.currentCell.robotVisited = true;
-    
         // call super to get direction
-        var direction = super.chooseDirection(cell);
-    
-        // Before returning direction we need to update line drawing in order to help determine
+        var direction = _super.prototype.chooseDirection.call(this, cell);
+        // Before returning direction we need to update line drawing in order to help determine 
         // which direction to go in the future
         if (this.backtracking) {
             // we're backtracking. remove line
             this.currentCell.lineDrawn = false;
-        } else {
+        }
+        else {
             // we're going forwards. Draw line
             this.currentCell.lineDrawn = true;
         }
-
         return direction;
-    }
-}
-
-*/
+    };
+    return RecursiveBacktrackingRobotAlgorithm;
+})(RobotAlgorithm);
 function createImage(source, size) {
     var img = document.createElement('img');
     img.src = source;
@@ -622,6 +611,7 @@ function proceed() {
     document.getElementById("mazeDisplay").innerHTML = "";
     userChoices = getUserOptionChoices();
     maze = new Maze(userChoices.mazeWidth, userChoices.mazeHeight);
+    console.log(maze);
     mazeViewer = getMazeViewer(userChoices.mazeDisplay, maze);
     mazeViewer.displayMaze();
 }
@@ -635,7 +625,6 @@ function solve() {
     robot = new Robot(mazeForRobot, mazeViewer, userChoices.robotDelay);
     var robotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm, robot);
     robot.setRobotAlgorithm(robotAlgorithm);
-    robot.fake();
     robot.trySolvingMaze();
 }
 function getUserOptionChoices() {
@@ -678,7 +667,8 @@ function getRobotAlgorithm(algorithmType, robot) {
     }
     else if (algorithmType == "wallFollower") {
         return new WallFollowerRobotAlgorithm(robot);
-    } //else if (algorithmType == "recursiveBacktracking") {
-    // 	return new RecursiveBacktrackingRobotAlgorithm(robot);
-    // }
+    }
+    else if (algorithmType == "recursiveBacktracking") {
+        return new RecursiveBacktrackingRobotAlgorithm(robot);
+    }
 }
