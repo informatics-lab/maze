@@ -8,7 +8,7 @@ The Met Office Informatics Lab has regular visitors as well as summer placement 
 Note that it is still a work in progress!
 
 ### Getting it running
-It is intentionally a very simple App. I have been running it locally on my Mac through Apache Web Server, and using the TypeScript compiler (tsc) to transcompile the TypeScript into the JavaScript that actually runs on the browser. Note that there is a tsc config file provided (tsconfig.json). This is currently set up to compile all TypeScript files into a single JavaScript file located in the 'compiledJs' directory. 
+It is intentionally a very simple App. I have been running it locally on my Mac through Apache Web Server, and using the TypeScript compiler (tsc) to transcompile the TypeScript into the JavaScript that actually runs on the browser (run 'tsc' from the root directory of the project). Note that there is a tsc config file provided (tsconfig.json). This is currently set up to compile all TypeScript files into a single JavaScript file located in the 'compiledJs' directory. 
 
 If you prefer for each TypeScript file to create an equivalent JavaScript file, and have all these resulting JavaScript files in a directory then: replace the "outFile": "compiledJs/maze.js" in tsconfig.json with "outDir": "[name of directory you want you JS in]"
 
