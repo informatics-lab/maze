@@ -1,7 +1,11 @@
 # TypeScript Maze
 
 ### Background
-I am writing this as a learning exercise for myself in trying to understand TypeScript and its benefits, whilst having an interesting problem to use as an example.
+I am writing this as both a learning exercise for myself in trying to understand TypeScript and its benefits, and also to serve as an extensible project that other interested parties could contribute to. 
+
+The Met Office Informatics Lab has regular visitors as well as summer placement students and work experience students and we were looking to provide something a bit more engaging than simply learning Python/JavaScript/whatever using online tutorials. Hopefully this (coupled to real robots in the lab that can be programmed to solve mazes) will help!
+
+Note that it is still a work in progress!
 
 ### Getting it running
 It is intentionally a very simple App. I have been running it locally on my Mac through Apache Web Server, and using the TypeScript compiler (tsc) to transcompile the TypeScript into the JavaScript that actually runs on the browser.
