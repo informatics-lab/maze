@@ -1,10 +1,16 @@
 /// <reference path="../maze/maze.ts" />
 
-// move coordinates interface somewhere else I guess?
+// TODO: move coordinates interface somewhere else 
 interface coordinates {
 	x: number;
 	y: number;
 }
+
+
+// The reason for a first person maze is so that a robot can be passed a maze to solve, but one which
+// it can't simply access a full matrix of maze cells and interrogate for the best solution. Instead
+// this FirstPersonMaze class will only allow clients to see where they are now, to look in a direction
+// or to move one cell in a given direction.
 
 class FirstPersonMaze {
 
@@ -33,7 +39,7 @@ class FirstPersonMaze {
 		}
 	}
 
-	look(direction: string) {
+	look(direction: string): Cell[] {
 		// get array of cells in a straight line in this direction until we come to a wall
 		var lookCells: Cell[] = [];
 		var coordinates: coordinates = {

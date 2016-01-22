@@ -2,70 +2,71 @@
 
 <!--  
 
-TO DOs
+TO DOs before GitHub move/release
+=================================
 
-* change so that cell openings point to neighbouring cells not just boolean of if they're there or not
-* re-write in ES6
-* save maze as code (almost done really)
-* draw maze from code
-
-TS TO DOs
-
-* extend cell interface on a per robot basis if/when they need to add extra functionality like line drawing etc?
-* Use ENUM for facing strings
-
-
-* Robot delay part of mazeViewer stuff?
+* Add official to do list or issue list
+	* ?? Parent class of Border and Composite for table-based viewers??
+* Add README
+  * original JS now out-dated -> all latest changes being made to TS (delete JS and refer people to previous commits?)
+  * only chrome on Mac been tested
+  * lineDrawn / robotVisited 'fudge'
+  * some missing types still
+  * tsc expected errors - see fudge above
+* Add GitHub repo description and ?website (jsfiddle???)
 
 -->
 
 <html>
-    <head>
-        <title>Maze Demonstrator</title>
-        <link rel="stylesheet" type="text/css" href="css/maze.css">
-    </head>
-    <body>
-    	<div id="optionsDiv">
-    	
-    		<label class="label">Maze Width:<input type="number" name="mazeWidth" id="mazeWidthInput" min="1" max="100" value="20"/></label> |
-    		<label class="label">Maze Height:<input type="number" name="mazeHeight" id="mazeHeightInput" min="1" max="100" value="20"></label> |
-    	
+	<head>
+		<title>Maze Demonstrator</title>
+		<link rel="stylesheet" type="text/css" href="css/maze.css">
+	</head>
+	<body>
+		<div id="optionsDiv">
+			
+			<label class="label">Maze Width:<input type="number" name="mazeWidth" id="mazeWidthInput" min="1" max="100" value="20"/></label> |
+			<label class="label">Maze Height:<input type="number" name="mazeHeight" id="mazeHeightInput" min="1" max="100" value="20"></label> |
+			
 			<label class="label">
 				Display: 
 				<select id="mazeDisplaySelect">
-  					<option value="borders" selected="selected">Table with borders (recommended)</option>
-  					<option value="compositeImages">Table with composite images</option>
-  					<option value="images">Table with images (no robot yet)</option>
-  					<option value="codes">Maze cell codes (no robot)</option>
+						<option value="borders" selected="selected">Table with borders (recommended)</option>
+						<option value="compositeImages">Table with composite images</option>
+						<option value="images">Table with images</option>
+						<option value="codes">Maze cell codes (no robot)</option>
 				</select> 
 			</label> |
 			
 			<label class='label'>
 				<input type="button" value="Go!" onclick='generateMaze()'>
 			</label>
-    	</div>
-    	<div id="robotOptionsDiv">
-    		<label class="label">
-    			Robot Algorithm: 
-    			<select id="robotAlgorithmSelect">
-  					<option value="randomMouse">Random Mouse</option>
-  					<option value="wallFollower" selected="selected">Wall Follower</option>
-  					<option value="recursiveBacktracking">Recursive Backtracking</option>
+		</div>
+			
+		<div id="robotOptionsDiv">
+			<label class="label">
+				Robot Algorithm: 
+				<select id="robotAlgorithmSelect">
+					<option value="randomMouse">Random Mouse</option>
+					<option value="wallFollower" selected="selected">Wall Follower</option>
+					<option value="recursiveBacktracking">Recursive Backtracking</option>
 				</select> 
-			</label>
-			 |			
+			</label> |			
+			
 			<label class="label">Robot delay (ms):<input type="number" name="robotDelay" id="robotDelayInput" min="1" max="2000" step="10" value="100"></label> |
 			
 			<label class='label'>
 				<input type="button" value="Solve!" onclick='solveMaze()'>
 			</label>
-    	</div>
-        <div id="mazeDisplay"></div>
-    </body>
+		</div>
+			
+		<div id="mazeDisplay"></div>
+		
+		</body>
 </html>
 
 <!-- For when compiling TS into a single JS file -->
-<script type="text/javascript" src="ts/mazeCompiled.js"></script>
+<script type="text/javascript" src="compiledJs/maze.js"></script>
 
 
 <!-- For when compiling TS into multiple JS files in an output directory -->
@@ -81,27 +82,9 @@ TS TO DOs
 <script type="text/javascript" src="compiledJs/robot/recursiveBacktrackingRobotAlgorithm.js"></script>
 <script type="text/javascript" src="compiledJs/viewers/mazeViewer.js"></script>
 <script type="text/javascript" src="compiledJs/viewers/borderMazeViewer.js"></script>
-<!--<script type="text/javascript" src="compiledJs/viewers/imageMazeViewer.js"></script>-->
-<!--<script type="text/javascript" src="compiledJs/viewers/compositeImageMazeViewer.js"></script>-->
-<!--<script type="text/javascript" src="compiledJs/viewers/codesMazeViewer.js"></script>-->
-<!--
+<script type="text/javascript" src="compiledJs/viewers/imageMazeViewer.js"></script>
+<script type="text/javascript" src="compiledJs/viewers/compositeImageMazeViewer.js"></script>
+<script type="text/javascript" src="compiledJs/viewers/codesMazeViewer.js"></script>
 <script type="text/javascript" src="compiledJs/mazeController.js"></script>
 -->
 
-<!-- For when using the original JS (no TS) -->
-<!--
-<script type="text/javascript" src="js/mazeUtilities.js"></script>
-<script type="text/javascript" src="js/maze/maze.js"></script>
-<script type="text/javascript" src="js/maze/firstPersonMaze.js"></script>
-<script type="text/javascript" src="js/robot/mazeRobot.js"></script>
-<script type="text/javascript" src="js/robot/robotAlgorithm.js"></script>
-<script type="text/javascript" src="js/robot/randomMouseRobotAlgorithm.js"></script>
-<script type="text/javascript" src="js/robot/wallFollowerRobotAlgorithm.js"></script>
-<script type="text/javascript" src="js/robot/recursiveBacktrackingRobotAlgorithm.js"></script>
-<script type="text/javascript" src="js/viewers/mazeViewer.js"></script>
-<script type="text/javascript" src="js/viewers/borderMazeViewer.js"></script>
-<script type="text/javascript" src="js/viewers/imageMazeViewer.js"></script>
-<script type="text/javascript" src="js/viewers/compositeImageMazeViewer.js"></script>
-<script type="text/javascript" src="js/viewers/codesMazeViewer.js"></script>
-<script type="text/javascript" src="js/mazeController.js"></script>
--->

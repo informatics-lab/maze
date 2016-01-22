@@ -1,6 +1,0 @@
-{
-    "compilerOptions": {
-        "outDir": "../compiledJs",
-		"target": "ES3"
-    }
-}

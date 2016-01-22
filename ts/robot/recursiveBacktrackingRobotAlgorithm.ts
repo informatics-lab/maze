@@ -3,8 +3,14 @@
 /// <reference path="mazeRobot" />
 
 
-// here we're using the 'recursive backtracker' algorithm
-// ([add reference here)
+// here we're using the 'recursive backtracker' algorithm:
+// Draw a line behind us at all times unless backtracking. At a junction pick a random direction 
+// that hasn't been explored yet (ignoring the direction we've come from). When we come to a dead
+// end then turn around and start backtracking, erasing the line. Finish backtracking when we come
+// to a junction which has openings that haven't yet been explored - i.e. go in one of these directions
+// and resume drawing the line. When we get to the finish there will be a single solution marked out 
+// by the line that we've drawn. This method will always find a solution if one exists, but it 
+// won't necessarily be the shortest solution if they are multiple.
 
 class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
 
@@ -15,10 +21,30 @@ class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
 		super(robot);
 	}
 
+	chooseDirection(cell: Cell) {
+		this.currentCell = cell;
+		this.currentCell.robotVisited = true;
+	
+		// call super to get direction
+		var direction = super.chooseDirection(cell);
+	
+		// Before returning direction we need to update line drawing in order to help determine 
+		// which direction to go in the future
+		if (this.backtracking) {
+			// we're backtracking. remove line
+			this.currentCell.lineDrawn = false;
+		} else {
+			// we're going forwards. Draw line
+			this.currentCell.lineDrawn = true;
+		}
+
+		return direction;
+	}
+
 	chooseDirectionAtDeadEnd() {
 		// update backtracking
 		this.backtracking = true;
- 	
+	
 		// use call to super to return direction
 		return super.chooseDirectionAtDeadEnd();
 	}
@@ -28,7 +54,7 @@ class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
 		if (this.currentCell.isEntry && this.backtracking) {
 			this.backtracking = false;
 		}
-    
+	
 		// use call to super to return direction
 		return super.chooseDirectionAtStraightOrTurn(openings);
 	}
@@ -58,26 +84,6 @@ class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
 			if (this.backtracking) {
 				this.backtracking = false;
 			}
-		}
-
-		return direction;
-	}
-
-	chooseDirection(cell: Cell) {
-		this.currentCell = cell;
-		this.currentCell.robotVisited = true;
-	
-		// call super to get direction
-		var direction = super.chooseDirection(cell);
-	
-		// Before returning direction we need to update line drawing in order to help determine 
-		// which direction to go in the future
-		if (this.backtracking) {
-			// we're backtracking. remove line
-			this.currentCell.lineDrawn = false;
-		} else {
-			// we're going forwards. Draw line
-			this.currentCell.lineDrawn = true;
 		}
 
 		return direction;

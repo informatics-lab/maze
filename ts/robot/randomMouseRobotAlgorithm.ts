@@ -12,6 +12,7 @@ class RandomMouseRobotAlgorithm extends RobotAlgorithm {
 		super(robot);
 	}
 
+	// simply choose a random direction at each junction (ignoring the way we've come from)
 	chooseDirectionAtJunction(openings) {
 		var randomDirection = openings[Math.floor(Math.random() * openings.length)];
 		return randomDirection;	

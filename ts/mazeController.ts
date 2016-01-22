@@ -13,10 +13,12 @@ var maze: Maze;
 var userChoices;
 var mazeViewer: MazeViewer;
 
+// Entry point for maze generation
 function generateMaze() {
-	init(proceed);
+	init(generate);
 }
 
+// Entry point for solving maze
 function solveMaze() {
 	init(solve);
 }
@@ -25,7 +27,7 @@ function init(fn) {
 
 	if (robot) {
 		robot.quit();
-		console.log("told robot to quit, about to call next function after a delay");
+		console.log("Pre-existing robot has been told to quit. Waiting for a timeout equal to the robot's update interval before proceeding.");
 		setTimeout(function() { 
         	fn.call(this);
     	}, robot.updateDelay);
@@ -34,8 +36,8 @@ function init(fn) {
 	}	
 }
 
-function proceed() {
-	document.getElementById('robotOptionsDiv').style.display = 'block';
+function generate() {
+	console.log("Starting maze generation.");
 
 	// clear away any pre-existing maze
 	document.getElementById("mazeDisplay").innerHTML = "";
@@ -43,16 +45,29 @@ function proceed() {
 	userChoices = getUserOptionChoices();
 
 	maze = new Maze(userChoices.mazeWidth, userChoices.mazeHeight);
-	console.log(maze);
-
 	mazeViewer = getMazeViewer(userChoices.mazeDisplay, maze);
 	mazeViewer.displayMaze();
+	console.log("Maze generation complete.")
+
+	if (mazeViewer.supportsRobots()) {
+		document.getElementById('robotOptionsDiv').style.display = 'block';
+	} else {
+		document.getElementById('robotOptionsDiv').style.display = 'none';
+	}
 }
 
 function solve() {
-	console.log("starting solve function");
+	console.log("Starting maze solve function. Checking if a maze exists...");
+	if (!maze) {
+		// This shouldn't happen in the current design of HTML page as the solve maze button
+		// only appears after a maze has been generated.
+		console.log("Error: No maze exists to solve. Quitting.");
+		return;
+	}
+
 	userChoices = getUserOptionChoices();
 	
+	// reset existing maze before trying to solve (it may already be mid-solve from previous robot)
 	mazeViewer.resetMazeView();
 	maze.reset();
 	document.getElementById("mazeDisplay").innerHTML = "";
@@ -68,48 +83,35 @@ function solve() {
 
 function getUserOptionChoices() {
 
-	var robotAlgorithmSelect = document.getElementById("robotAlgorithmSelect");
-	var mazeDisplaySelect = document.getElementById("mazeDisplaySelect");
+	var mazeWidthSelect = <HTMLSelectElement>document.getElementById("mazeWidthInput");
+	var mazeHeightSelect = <HTMLSelectElement>document.getElementById("mazeHeightInput");
+	var robotDelaySelect = <HTMLSelectElement>document.getElementById("robotDelayInput");
+	var robotAlgorithmSelect = <HTMLSelectElement>document.getElementById("robotAlgorithmSelect");
+	var mazeDisplaySelect = <HTMLSelectElement>document.getElementById("mazeDisplaySelect");
 
 	var options = {
-		mazeWidth: document.getElementById("mazeWidthInput").value,
-		mazeHeight: document.getElementById("mazeHeightInput").value,
-		robotDelay: document.getElementById("robotDelayInput").value,
+		mazeWidth: mazeWidthSelect.value,
+		mazeHeight: mazeHeightSelect.value,
+		robotDelay: robotDelaySelect.value,
 		robotAlgorithm: robotAlgorithmSelect.options[robotAlgorithmSelect.selectedIndex].value,
 		mazeDisplay: mazeDisplaySelect.options[mazeDisplaySelect.selectedIndex].value
 	}
 
-	// var mazeWidthInput: HTMLInputElement = document.getElementById("mazeWidthInput");
-	// options.mazeWidth = mazeWidthInput.value;
-	
-	// var mazeHeightInput = document.getElementById("mazeHeightInput");
-	// options.mazeHeight = mazeHeightInput.value;
-
-	// var robotAlgorithmSelect = document.getElementById("robotAlgorithmSelect");
-	// options.robotAlgorithm = robotAlgorithmSelect.options[robotAlgorithmSelect.selectedIndex].value;
-	
-	// var robotDelayInput = document.getElementById("robotDelayInput");
-	// options.robotDelay = robotDelayInput.value;
-	
-	// var mazeDisplaySelect = document.getElementById("mazeDisplaySelect");
-	// options.mazeDisplay = mazeDisplaySelect.options[mazeDisplaySelect.selectedIndex].value;
-
 	return options;
 }
 
-function getMazeViewer(viewerType, maze) {
+function getMazeViewer(viewerType, maze): MazeViewer {
 	if (viewerType == "borders") {
 		return new BorderMazeViewer(maze);
-	} //else if (viewerType == "images") {
-	// 	return new ImageMazeViewer(maze);
-	// } else if (viewerType == "compositeImages") {
-	// 	return new CompositeImageMazeViewer(maze);
-	// } else if (viewerType == "codes") {
-	// 	return new CodesMazeViewer(maze);
-	// }
+	 } else if (viewerType == "images") {
+	 	return new ImageMazeViewer(maze);
+	 } else if (viewerType == "compositeImages") {
+	 	return new CompositeImageMazeViewer(maze);
+	 } else if (viewerType == "codes") {
+	 	return new CodesMazeViewer(maze);
+	 }
 }
 
-// TODO Need to change this as currently robot algorithm needs a robot in constructor
 function getRobotAlgorithm(algorithmType: string, robot: Robot) {
 	if (algorithmType == "randomMouse") {
 		return new RandomMouseRobotAlgorithm(robot);

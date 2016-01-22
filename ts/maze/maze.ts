@@ -128,9 +128,7 @@ class Maze {
 	    }
 	    
 	    // make entrance and exit. Set current cell to entrance, set isExit to true for exit cell
-	    //this.cells[0][0].openings.north = true;
 	    this.cells[0][0].isEntry = true;
 	    this.cells[this.x - 1][this.y - 1].isExit = true;
-	    //this.cells[this.x - 1][this.y - 1].openings.east = true;
  	}
 }

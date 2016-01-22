@@ -1,6 +1,12 @@
 /// <reference path="../maze/cell.ts" />
 /// <reference path="mazeRobot.ts" />
 
+// Robot 'brain' to be composed with a robot to decide how to solve the maze. This is the abstract
+// class. The specific subclasses will attempt to solve a maze in differing ways. 
+// Note that the chooseDirection method is the main engine method which delegates as appropriate
+// to the other direction choosing methods based on what openings are available in the cell in question
+// Default implementations are provided for dead ends, straights and turns, but subclasses must make a 
+// decision on how to handle junctions.
 abstract class RobotAlgorithm {
 
 	robot: Robot;
@@ -8,16 +14,6 @@ abstract class RobotAlgorithm {
 	constructor(robot: Robot) {
 		this.robot = robot;
 	}
-
-	chooseDirectionAtDeadEnd() {
-		return this.robot.getNewDirection(this.robot.facing, 180);
-	}
-
-	chooseDirectionAtStraightOrTurn(openings) {
-		return openings[0];
-	}
-
-	abstract chooseDirectionAtJunction(openings);
 
 	chooseDirection(cell: Cell) {
 		var direction: string;
@@ -34,6 +30,16 @@ abstract class RobotAlgorithm {
 
 		return direction;
 	}
+
+	chooseDirectionAtDeadEnd() {
+		return this.robot.getNewDirection(this.robot.facing, 180);
+	}
+
+	chooseDirectionAtStraightOrTurn(openings) {
+		return openings[0];
+	}
+
+	abstract chooseDirectionAtJunction(openings);
 }
 
 
