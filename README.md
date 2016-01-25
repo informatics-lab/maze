@@ -20,13 +20,10 @@ The compiled JavaScript is also included in the repository, so the result can be
 Note that as this has mostly been a way for me to learn TypeScript (rather than an operational product!) I've only been testing this on Chrome on my Mac. If it doesn't work on your browser then let me know and I'll try to fix it if I can.
 
 ### Issues / Selected To Dos
-* I haven't completely finished added in all Types from when I re-wrote this from pure JavaScript. Should be finished soon.
-* Note that there is a bit of a hack when it comes to the way the 'recursive backtracking' algorithm is being displayed. Specifically I'm referring to the fact that in the original JavaScript I simply added a couple of new properties to a couple of objects - 'robotVisited' and 'lineDrawn' to the cell objects and 'line' to the displayCell (HTMLTableCell) object. This is fine in the loose world of JavaScript, but in TypeScript it causes 'errors' when you compile to JavaScript using tsc. See the section below. Note that these errors don't actually cause any problems in running the app, but do probably indicate that a bit of a refactor is needed!
-* I'm not entirely happy with the relationship between maze, robot and robotAlgorithm objects - they could be better decoupled so I'm going to give this some thought.
-* Could possibly do with a new class that is an abstract child of MazeViewer and serves as an abstract Parent class of BorderMazeViewer, CompositeImageMazeViewer and ImageMazeView as these all use HTML tables and it could reduce code duplication. I'm going to work on this.
+These have now been moved to https://github.com/met-office-lab/maze/issues
 
 ### Expected errors on using 'tsc' to compile the TypeScript into JavaScript
-See section above for background. Note that these errors don't actually stop the app from working. I will work to refactor the TypeScript code to remove these.
+See https://github.com/met-office-lab/maze/issues/5 for background. Note that these errors don't actually stop the app from working. I will work to refactor the TypeScript code to remove these.
 
 1. ts/robot/recursiveBacktrackingRobotAlgorithm.ts(26,20): error TS2339: Property 'robotVisited' does not exist on type 'Cell'.
 2. ts/robot/recursiveBacktrackingRobotAlgorithm.ts(35,21): error TS2339: Property 'lineDrawn' does not exist on type 'Cell'.
