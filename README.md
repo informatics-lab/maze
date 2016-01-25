@@ -14,6 +14,8 @@ If you prefer for each TypeScript file to create an equivalent JavaScript file, 
 
 I have been using Sublime Text 3 as my IDE and followed these instructions to get up and running: https://cmatskas.com/getting-started-with-typescript-and-sublime-text/
 
+The compiled JavaScript is also included in the repository, so the result can be seen quickly at https://rawgit.com/met-office-lab/maze/master/maze.html.
+
 ### Browser support / testing
 Note that as this has mostly been a way for me to learn TypeScript (rather than an operational product!) I've only been testing this on Chrome on my Mac. If it doesn't work on your browser then let me know and I'll try to fix it if I can.
 
