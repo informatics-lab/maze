@@ -1,5 +1,7 @@
 # TypeScript Maze
 
+See it at https://rawgit.com/met-office-lab/maze/master/maze.html (or see below for getting it running locally)
+
 ### Background
 I am writing this as both a learning exercise for myself in trying to understand TypeScript and its benefits, and also to serve as an extensible project that other interested parties could contribute to. 
 
