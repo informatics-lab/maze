@@ -12,7 +12,13 @@ Note that it is still a work in progress!
 ### Getting it running
 It is intentionally a very simple App. I have been running it locally on my Mac through Apache Web Server, and using the TypeScript compiler (tsc) to transcompile the TypeScript into the JavaScript that actually runs on the browser (run 'tsc' from the root directory of the project). It is arguably easiest to install TypeScript via nodejs (http://nodejs.org/download/). Note that there is a tsc config file provided (tsconfig.json). This is currently set up to compile all TypeScript files into a single JavaScript file located in the 'compiledJs' directory. 
 
-If you prefer for each TypeScript file to create an equivalent JavaScript file, and have all these resulting JavaScript files in a directory then: replace the "outFile": "compiledJs/maze.js" in tsconfig.json with "outDir": "[name of directory you want you JS in]"
+In summary: 
+* If you don't already have nodejs installed then do that first (see link above).
+* With nodejs installed run `npm install -g typescript`
+* Run locally by pointing your browser at maze.html, or you can run it through Apache web server or similar
+* If you want to modify any of the Typescript then recompile it to JavaScript before running using `tsc` from the root directory
+
+If you prefer for each TypeScript file to create an equivalent JavaScript file, and have all these resulting JavaScript files in a directory then: replace the `"outFile": "compiledJs/maze.js"` in tsconfig.json with `"outDir": "[name of directory you want you JS in]"`
 
 I have been using Sublime Text 3 as my IDE and followed these instructions to get up and running: https://cmatskas.com/getting-started-with-typescript-and-sublime-text/
 
