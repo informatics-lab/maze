@@ -15,7 +15,7 @@ interface coordinates {
 class FirstPersonMaze {
 
 	private _cells: Cell[][];
-	private _currentCoordinates;
+	private _currentCoordinates: coordinates;
 	private _currentCell: Cell
 
 	constructor(thirdPersonMaze: Maze) {

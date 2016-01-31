@@ -1,5 +1,5 @@
 /// <reference path="mazeViewer.ts" />
-/// <reference path="../mazeUtilities.ts" />
+/// <reference path="../mazeUtils.ts" />
 /// <reference path="../maze/cell.ts" />
 
 // Displayes the maze in an HTML table with the table cell borders represnting walls in the maze
@@ -38,7 +38,7 @@ class BorderMazeViewer extends MazeViewer {
 				var mazeCell = this.maze.cells[i][j]; 
 				cell.id = mazeCell.id;
 
-				cell.innerHTML = this.displayCodes ? MazeUtilities.cellToTile(mazeCell) : '&nbsp;'
+				cell.innerHTML = this.displayCodes ? mazeCell.openingsCode.toString(16) : '&nbsp;'
 
 				var directionsToBorders = {
 					north: 'Top',

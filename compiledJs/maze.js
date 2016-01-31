@@ -13,21 +13,113 @@ var Cell = (function () {
     function Cell(i, j) {
         this.id = i + "," + j;
         this.visited = false;
+        this.frontier = false;
         this.isExit = false;
         this.isEntry = false;
         this.openings = new CellOpenings();
     }
+    Object.defineProperty(Cell.prototype, "openings", {
+        get: function () {
+            return this._openings;
+        },
+        set: function (openings) {
+            this._openings = openings;
+            this._openingsCode = Cell.openingsToCode(openings);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Cell.prototype, "openingsCode", {
+        get: function () {
+            return this._openingsCode;
+        },
+        set: function (openingsCode) {
+            this._openingsCode = openingsCode;
+            this._openings = Cell.codeToOpenings(openingsCode);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Cell.openingsToCode = function (openings) {
+        var code = 0;
+        if (openings.north) {
+            code += 8;
+        }
+        if (openings.east) {
+            code += 4;
+        }
+        if (openings.south) {
+            code += 2;
+        }
+        if (openings.west) {
+            code += 1;
+        }
+        return code;
+    };
+    Cell.codeToOpenings = function (openingsCode) {
+        var openings = { north: false, east: false, south: false, west: false };
+        var power;
+        while (openingsCode > 0) {
+            power = MazeUtils.getLargestPowerOfTwo(openingsCode);
+            if (power == 8) {
+                openings.north = true;
+            }
+            else if (power == 4) {
+                openings.east = true;
+            }
+            else if (power == 2) {
+                openings.south = true;
+            }
+            else if (power == 1) {
+                openings.west = true;
+            }
+            openingsCode -= power;
+        }
+        return openings;
+    };
     return Cell;
 })();
 /// <reference path="cell.ts" />
+var MazeGenerationAlgorithm = (function () {
+    function MazeGenerationAlgorithm() {
+    }
+    MazeGenerationAlgorithm.prototype.generateMaze = function (width, height) {
+        var emptyMatrix = this.getEmptyMazeMatrix(width, height);
+        return this.generateMazeInMatrix(emptyMatrix);
+    };
+    MazeGenerationAlgorithm.prototype.getEmptyMazeMatrix = function (width, height) {
+        var cells = [];
+        // populate cells array
+        for (var i = 0; i < width; i++) {
+            cells[i] = [];
+            for (var j = 0; j < height; j++) {
+                var cell = new Cell(i, j);
+                cells[i].push(cell);
+            }
+        }
+        // make entrance and exit. Set current cell to entrance, set isExit to true for exit cell
+        cells[0][0].isEntry = true;
+        cells[width - 1][height - 1].isExit = true;
+        return cells;
+    };
+    // Check if cell coordinates belong to a cell which is unvisited (no wall openings) and 
+    // is within the outer bounds of the maze
+    MazeGenerationAlgorithm.prototype.cellIsInBoundsAndUnvisited = function (matrix, cellCoords) {
+        return cellCoords.x >= 0 && cellCoords.y >= 0 &&
+            cellCoords.x < matrix.length && cellCoords.y < matrix[0].length &&
+            matrix[cellCoords.x][cellCoords.y].openingsCode == 0;
+    };
+    return MazeGenerationAlgorithm;
+})();
+/// <reference path="cell.ts" />
+/// <reference path="mazeGenerationAlgorithm.ts" />
 var Maze = (function () {
-    function Maze(x, y) {
+    function Maze(x, y, generationAlgorithm) {
         this.cells = [];
         this.x = x;
         this.y = y;
-        this.nCells = x * y;
-        this.nVisitedCells = 0;
-        if (this.nCells < 1) {
+        this.generationAlgorithm = generationAlgorithm;
+        if (this.x * this.y < 1) {
             alert("illegal maze dimensions");
             return;
         }
@@ -41,7 +133,8 @@ var Maze = (function () {
                 var cell = this.cells[i][j];
                 // remove any cell properties that aren't in the 'core' list. This ensures
                 // that any properties added by previous robots are removed ready for new robot
-                var coreProperties = ['visited', 'isExit', 'isEntry', 'openings', 'id'];
+                // TODO: refactor so that we don't need to do this!
+                var coreProperties = ['visited', 'frontier', 'isExit', 'isEntry', 'openings', 'openingsCode', '_openings', '_openingsCode', 'id'];
                 for (var property in cell) {
                     if (coreProperties.indexOf(property) == -1) {
                         // remove this non-core property
@@ -52,86 +145,7 @@ var Maze = (function () {
         }
     };
     Maze.prototype.createMaze = function () {
-        // start our path from a random cell
-        var here = [Math.floor(Math.random() * this.x), Math.floor(Math.random() * this.y)];
-        var path = [here];
-        // populate cells array with all cells set as not visited and no wall openings
-        for (var i = 0; i < this.x; i++) {
-            this.cells[i] = [];
-            for (var j = 0; j < this.y; j++) {
-                var cell = new Cell(i, j);
-                this.cells[i].push(cell);
-            }
-        }
-        // adjust cells array to reflect that we've already 'visited' our starting cell
-        this.cells[here[0]][here[1]].visited = true;
-        this.nVisitedCells++;
-        // create a path through the maze until we've visited every cell
-        while (this.nVisitedCells < this.nCells) {
-            // get the four potential next cells (+1 in x direction, +1 in y, 
-            // -1 in x, -1 in y). Only potential because we haven't yet checked 
-            // if we've already visited them
-            var neighbours = [
-                [here[0] + 1, here[1]],
-                [here[0], here[1] + 1],
-                [here[0] - 1, here[1]],
-                [here[0], here[1] - 1]
-            ];
-            // populate list of neighbouring cells that haven't been visited
-            var unvisitedNeighbours = [];
-            for (var k = 0; k < 4; k++) {
-                // if the neighbour in question is out of bounds then move onto next neighbour
-                if (neighbours[k][0] < 0 || neighbours[k][0] > this.x - 1 || neighbours[k][1] < 0 || neighbours[k][1] > this.y - 1) {
-                    continue;
-                }
-                if (this.cells[neighbours[k][0]][neighbours[k][1]].visited == false) {
-                    unvisitedNeighbours.push(neighbours[k]);
-                }
-            }
-            if (unvisitedNeighbours.length > 0) {
-                // if there are unvisited neighbouring cells then set a randomly chosen one of 
-                // them to be the next cell
-                this.next = unvisitedNeighbours[Math.floor(Math.random() * unvisitedNeighbours.length)];
-                // update the cell wall openings properties appropriately
-                if (this.next[0] == here[0]) {
-                    if (this.next[1] > here[1]) {
-                        // the path moved one cell south
-                        this.cells[here[0]][here[1]].openings.south = true;
-                        this.cells[this.next[0]][this.next[1]].openings.north = true;
-                    }
-                    else {
-                        // the path moved one cell north
-                        this.cells[here[0]][here[1]].openings.north = true;
-                        this.cells[this.next[0]][this.next[1]].openings.south = true;
-                    }
-                }
-                else {
-                    if (this.next[0] > here[0]) {
-                        // the path moved one cell to the east
-                        this.cells[here[0]][here[1]].openings.east = true;
-                        this.cells[this.next[0]][this.next[1]].openings.west = true;
-                    }
-                    else {
-                        // the path moved one cell to the west
-                        this.cells[here[0]][here[1]].openings.west = true;
-                        this.cells[this.next[0]][this.next[1]].openings.east = true;
-                    }
-                }
-                // advance the path, set the next cell as visited, and then update where 'here' is
-                path.push(this.next);
-                this.cells[this.next[0]][this.next[1]].visited = true;
-                this.nVisitedCells++;
-                here = this.next;
-            }
-            else {
-                // if there are no unvisited neighbouring cells then go back one step 
-                // on the path and adjust path accordingly
-                here = path.pop();
-            }
-        }
-        // make entrance and exit. Set current cell to entrance, set isExit to true for exit cell
-        this.cells[0][0].isEntry = true;
-        this.cells[this.x - 1][this.y - 1].isExit = true;
+        this.cells = this.generationAlgorithm.generateMaze(this.x, this.y);
     };
     return Maze;
 })();
@@ -196,6 +210,191 @@ var FirstPersonMaze = (function () {
     };
     return FirstPersonMaze;
 })();
+var Direction;
+(function (Direction) {
+    Direction[Direction["N"] = 8] = "N";
+    Direction[Direction["E"] = 4] = "E";
+    Direction[Direction["S"] = 2] = "S";
+    Direction[Direction["W"] = 1] = "W";
+})(Direction || (Direction = {}));
+;
+// Using a module allows us to create something like a static class
+var DirectionUtils;
+(function (DirectionUtils) {
+    function dX(dir) {
+        switch (dir) {
+            case Direction.E: return 1;
+            case Direction.W: return -1;
+            case Direction.N: return 0;
+            case Direction.S: return 0;
+        }
+    }
+    DirectionUtils.dX = dX;
+    function dY(dir) {
+        switch (dir) {
+            case Direction.E: return 0;
+            case Direction.W: return 0;
+            case Direction.N: return -1;
+            case Direction.S: return 1;
+        }
+    }
+    DirectionUtils.dY = dY;
+    function opposite(dir) {
+        switch (dir) {
+            case Direction.E: return Direction.W;
+            case Direction.W: return Direction.E;
+            case Direction.N: return Direction.S;
+            case Direction.S: return Direction.N;
+        }
+    }
+    DirectionUtils.opposite = opposite;
+    function getDirection(here, next) {
+        if (next.x > here.x) {
+            return Direction.E;
+        }
+        if (next.x < here.x) {
+            return Direction.W;
+        }
+        if (next.y > here.y) {
+            return Direction.S;
+        }
+        if (next.y < here.y) {
+            return Direction.N;
+        }
+    }
+    DirectionUtils.getDirection = getDirection;
+})(DirectionUtils || (DirectionUtils = {}));
+/// <reference path="cell.ts" />
+/// <reference path="mazeGenerationAlgorithm.ts" />
+/// <reference path="direction.ts" />
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+// See (e.g.) http://weblog.jamisbuck.org/2011/1/27/maze-generation-growing-tree-algorithm
+var MazeGenerationGrowingTreeAlgorithm = (function (_super) {
+    __extends(MazeGenerationGrowingTreeAlgorithm, _super);
+    function MazeGenerationGrowingTreeAlgorithm() {
+        _super.call(this);
+    }
+    MazeGenerationGrowingTreeAlgorithm.prototype.generateMazeInMatrix = function (mazeMatrix) {
+        var maxX = mazeMatrix.length;
+        var maxY = mazeMatrix[0].length;
+        // create an empty list of cells and add a random one to it
+        var cellList = [];
+        var here = { x: Math.floor(Math.random() * maxX), y: Math.floor(Math.random() * maxY) };
+        var next;
+        cellList.push(here);
+        // loop through adding to cells list if there are unvisited neighbours to add, or remove cells if not
+        // when cell list is empty we know that the maze contains all the cells
+        while (cellList.length > 0) {
+            // set the current cell to the most recently added cell in the cell list
+            var index = cellList.length - 1;
+            here = cellList[cellList.length - 1];
+            // Try each direction randomly in turn, and for each direction...
+            var directions = MazeUtils.shuffle([Direction.N, Direction.E, Direction.S, Direction.W]);
+            for (var _i = 0; _i < directions.length; _i++) {
+                var dir = directions[_i];
+                // ...set our proposed next cell to be the one that lies immediately in that direction
+                next = { x: here.x + DirectionUtils.dX(dir), y: here.y + DirectionUtils.dY(dir) };
+                if (this.cellIsInBoundsAndUnvisited(mazeMatrix, next)) {
+                    // If that cell had not previously been visited by the algorithm, and is within the maze bounds
+                    // then carve a pasageway from our current cell to this new one, and add the new one to the cell list
+                    mazeMatrix[here.x][here.y].openingsCode += dir;
+                    mazeMatrix[next.x][next.y].openingsCode += DirectionUtils.opposite(dir);
+                    cellList.push(next);
+                    // We set index to null to indicate that we've found a neighbouring cell, and we don't need
+                    // to remove a cell from the list
+                    index = null;
+                    break;
+                }
+            }
+            // If index is null we know we've not found a suitable neighbouring cell and we must 'backtrack'
+            // by removing the most recently added cell before continuing the loop.
+            if (index !== null) {
+                cellList.pop();
+            }
+        }
+        return mazeMatrix;
+    };
+    return MazeGenerationGrowingTreeAlgorithm;
+})(MazeGenerationAlgorithm);
+/// <reference path="cell.ts" />
+/// <reference path="mazeGenerationAlgorithm.ts" />
+/// <reference path="direction.ts" />
+/// <reference path="firstPersonMaze.ts" />
+// See (e.g) http://weblog.jamisbuck.org/2011/1/10/maze-generation-prim-s-algorithm
+var MazeGenerationPrimsAlgorithm = (function (_super) {
+    __extends(MazeGenerationPrimsAlgorithm, _super);
+    function MazeGenerationPrimsAlgorithm() {
+        _super.call(this);
+        this.frontier = []; // list of cells neighbouring those cells already in maze
+    }
+    MazeGenerationPrimsAlgorithm.prototype.generateMazeInMatrix = function (mazeMatrix) {
+        var maxX = mazeMatrix.length;
+        var maxY = mazeMatrix[0].length;
+        // start with adding a random cell to the maze (which adds its neighbours to the 'frontier' list)
+        var here = { x: Math.floor(Math.random() * maxX), y: Math.floor(Math.random() * maxY) };
+        var neighbourInMaze;
+        this.addCellToMaze(here, mazeMatrix);
+        // Keep looping until the length of 'frontier' cells is empty
+        while (this.frontier.length > 0) {
+            // Pick a new cell by randomly removing a frontier cell from the list and assigning it to the current cell
+            here = this.frontier.splice(Math.floor(Math.random() * this.frontier.length), 1)[0];
+            // get the current cell's neighbours which are already in the maze and pick one at random
+            var neighbours = this.getNeighboursAlreadyInMaze(here, mazeMatrix);
+            neighbourInMaze = neighbours[Math.floor(Math.random() * neighbours.length)];
+            // get the direction from the current cell back to it's neighbour in the maze and then carve a
+            // passage between the two, and finally add the current cell to the maze (which updates the list
+            // of 'frontier' cells too)
+            var dir = DirectionUtils.getDirection(here, neighbourInMaze);
+            mazeMatrix[here.x][here.y].openingsCode += dir;
+            mazeMatrix[neighbourInMaze.x][neighbourInMaze.y].openingsCode += DirectionUtils.opposite(dir);
+            this.addCellToMaze(here, mazeMatrix);
+        }
+        return mazeMatrix;
+    };
+    // Mark a cell at the given coordinates as being in the maze. Then add all it's neighbours to the 
+    // list of 'frontier' cells
+    MazeGenerationPrimsAlgorithm.prototype.addCellToMaze = function (cellCoords, matrix) {
+        matrix[cellCoords.x][cellCoords.y].visited = true;
+        this.addFrontier({ x: cellCoords.x - 1, y: cellCoords.y }, matrix);
+        this.addFrontier({ x: cellCoords.x + 1, y: cellCoords.y }, matrix);
+        this.addFrontier({ x: cellCoords.x, y: cellCoords.y - 1 }, matrix);
+        this.addFrontier({ x: cellCoords.x, y: cellCoords.y + 1 }, matrix);
+    };
+    // Get a list of all the neighbours of a given cell which are already in the maze
+    MazeGenerationPrimsAlgorithm.prototype.getNeighboursAlreadyInMaze = function (cellCoords, matrix) {
+        var neighbours = [];
+        var x = cellCoords.x;
+        var y = cellCoords.y;
+        if (x > 0 && matrix[x - 1][y].visited) {
+            neighbours.push({ x: x - 1, y: y });
+        }
+        if (x + 1 < matrix.length && matrix[x + 1][y].visited) {
+            neighbours.push({ x: x + 1, y: y });
+        }
+        if (y > 0 && matrix[x][y - 1].visited) {
+            neighbours.push({ x: x, y: y - 1 });
+        }
+        if (y + 1 < matrix[0].length && matrix[x][y + 1].visited) {
+            neighbours.push({ x: x, y: y + 1 });
+        }
+        return neighbours;
+    };
+    // Add a given cell to the list of 'frontier' cells as long as it's not been visited before by the 
+    // algorithm (not in the maze), is within the maze bounds, and is not already a 'frontier' cell
+    MazeGenerationPrimsAlgorithm.prototype.addFrontier = function (cellCoords, matrix) {
+        if (this.cellIsInBoundsAndUnvisited(matrix, cellCoords)) {
+            if (matrix[cellCoords.x][cellCoords.y].frontier == false) {
+                matrix[cellCoords.x][cellCoords.y].frontier = true;
+                this.frontier.push(cellCoords);
+            }
+        }
+    };
+    return MazeGenerationPrimsAlgorithm;
+})(MazeGenerationAlgorithm);
 /// <reference path="../maze/maze.ts" />
 /// <reference path="../maze/cell.ts" />
 // Abstract superclass for maze viewers (displayers). Subclasses specifically decide how they will 
@@ -246,11 +445,6 @@ var RobotAlgorithm = (function () {
 /// <reference path="../maze/cell.ts" />
 /// <reference path="robotAlgorithm" />
 /// <reference path="mazeRobot" />
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
 // here we're just using the 'random mouse' algorithm 
 // (https://en.wikipedia.org/wiki/Maze_solving_algorithm#Random_mouse_algorithm)
 var RandomMouseRobotAlgorithm = (function (_super) {
@@ -469,8 +663,8 @@ var RecursiveBacktrackingRobotAlgorithm = (function (_super) {
 })(RobotAlgorithm);
 /// <reference path="maze/cell.ts" />
 // Using a module allows us to create something like a static class
-var MazeUtilities;
-(function (MazeUtilities) {
+var MazeUtils;
+(function (MazeUtils) {
     function createImage(source, size) {
         var img = document.createElement('img');
         img.src = source;
@@ -479,28 +673,37 @@ var MazeUtilities;
         img.style.position = 'absolute';
         return img;
     }
-    MazeUtilities.createImage = createImage;
-    // Encode a cell based on which direction(s) it has openings to neighbouring cells 
-    function cellToTile(cell) {
-        var sum = 0;
-        if (cell.openings.north) {
-            sum += 8;
+    MazeUtils.createImage = createImage;
+    function getLargestPowerOfTwo(number) {
+        var result = 1;
+        while (result <= number) {
+            result *= 2;
         }
-        if (cell.openings.east) {
-            sum += 4;
-        }
-        if (cell.openings.south) {
-            sum += 2;
-        }
-        if (cell.openings.west) {
-            sum += 1;
-        }
-        return sum.toString(16);
+        return result / 2;
     }
-    MazeUtilities.cellToTile = cellToTile;
-})(MazeUtilities || (MazeUtilities = {}));
+    MazeUtils.getLargestPowerOfTwo = getLargestPowerOfTwo;
+    // The de-facto unbiased shuffle algorithm - the Fisher-Yates (aka Knuth) shuffle. 
+    // See http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+    function shuffle(array) {
+        var currentIndex = array.length;
+        var randomIndex;
+        var temporaryValue;
+        // While there remain elements to shuffle...
+        while (currentIndex !== 0) {
+            // Pick a remaining element...
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex -= 1;
+            // And swap it with the current element.
+            temporaryValue = array[currentIndex];
+            array[currentIndex] = array[randomIndex];
+            array[randomIndex] = temporaryValue;
+        }
+        return array;
+    }
+    MazeUtils.shuffle = shuffle;
+})(MazeUtils || (MazeUtils = {}));
 /// <reference path="mazeViewer.ts" />
-/// <reference path="../mazeUtilities.ts" />
+/// <reference path="../mazeUtils.ts" />
 /// <reference path="../maze/cell.ts" />
 // Displayes the maze in an HTML table with the table cell borders represnting walls in the maze
 var BorderMazeViewer = (function (_super) {
@@ -527,7 +730,7 @@ var BorderMazeViewer = (function (_super) {
                 cell.style.fontSize = '4pt';
                 var mazeCell = this.maze.cells[i][j];
                 cell.id = mazeCell.id;
-                cell.innerHTML = this.displayCodes ? MazeUtilities.cellToTile(mazeCell) : '&nbsp;';
+                cell.innerHTML = this.displayCodes ? mazeCell.openingsCode.toString(16) : '&nbsp;';
                 var directionsToBorders = {
                     north: 'Top',
                     east: 'Right',
@@ -589,6 +792,9 @@ var BorderMazeViewer = (function (_super) {
 })(MazeViewer);
 /// <reference path="maze/maze.ts" />
 /// <reference path="maze/firstPersonMaze.ts" />
+/// <reference path="maze/mazeGenerationAlgorithm" />
+/// <reference path="maze/mazeGenerationGrowingTreeAlgorithm.ts" />
+/// <reference path="maze/mazeGenerationPrimsAlgorithm" />
 /// <reference path="robot/mazeRobot.ts" />
 /// <reference path="robot/robotAlgorithm.ts" />
 /// <reference path="robot/randomMouseRobotAlgorithm.ts" />
@@ -598,6 +804,7 @@ var BorderMazeViewer = (function (_super) {
 /// <reference path="viewers/borderMazeViewer.ts" />
 var robot;
 var maze;
+var mazeGenerationAlgorithm;
 var userChoices;
 var mazeViewer;
 // Entry point for maze generation
@@ -625,7 +832,8 @@ function generate() {
     // clear away any pre-existing maze
     document.getElementById("mazeDisplay").innerHTML = "";
     userChoices = getUserOptionChoices();
-    maze = new Maze(userChoices.mazeWidth, userChoices.mazeHeight);
+    mazeGenerationAlgorithm = getMazeGenerationAlgorithm(userChoices.mazeGenerationAlgorithm);
+    maze = new Maze(userChoices.mazeWidth, userChoices.mazeHeight, mazeGenerationAlgorithm);
     mazeViewer = getMazeViewer(userChoices.mazeDisplay, maze);
     mazeViewer.displayMaze();
     console.log("Maze generation complete.");
@@ -658,17 +866,27 @@ function solve() {
 function getUserOptionChoices() {
     var mazeWidthSelect = document.getElementById("mazeWidthInput");
     var mazeHeightSelect = document.getElementById("mazeHeightInput");
+    var mazeGenerationAlgorithmSelect = document.getElementById("mazeGenerationAlgorithmSelect");
     var robotDelaySelect = document.getElementById("robotDelayInput");
     var robotAlgorithmSelect = document.getElementById("robotAlgorithmSelect");
     var mazeDisplaySelect = document.getElementById("mazeDisplaySelect");
     var options = {
         mazeWidth: mazeWidthSelect.value,
         mazeHeight: mazeHeightSelect.value,
+        mazeGenerationAlgorithm: mazeGenerationAlgorithmSelect.options[mazeGenerationAlgorithmSelect.selectedIndex].value,
         robotDelay: robotDelaySelect.value,
         robotAlgorithm: robotAlgorithmSelect.options[robotAlgorithmSelect.selectedIndex].value,
         mazeDisplay: mazeDisplaySelect.options[mazeDisplaySelect.selectedIndex].value
     };
     return options;
+}
+function getMazeGenerationAlgorithm(algorithmType) {
+    if (algorithmType == "growingTree") {
+        return new MazeGenerationGrowingTreeAlgorithm();
+    }
+    else if (algorithmType == "prims") {
+        return new MazeGenerationPrimsAlgorithm();
+    }
 }
 function getMazeViewer(viewerType, maze) {
     if (viewerType == "borders") {
@@ -697,7 +915,7 @@ function getRobotAlgorithm(algorithmType, robot) {
 }
 /// <reference path="mazeViewer.ts" />
 /// <reference path="../maze/cell.ts" />
-/// <reference path="../mazeUtilities.ts" />
+/// <reference path="../mazeUtils.ts" />
 // An unusual maze viewer which doesn't produce a pictorial view of the maze, but simply encodes each cell 
 // in sequence (as reading a book from NW corner to SE corner) as a hexadecimal character based on the openings
 // that each cell has to its neighbours. This gets displayed in a text area. Could be used for easy 'saving'
@@ -716,8 +934,7 @@ var CodesMazeViewer = (function (_super) {
         for (var j = 0; j < this.maze.y; j++) {
             for (var i = 0; i < this.maze.x; i++) {
                 mazeCell = this.maze.cells[i][j];
-                tileCode = MazeUtilities.cellToTile(mazeCell);
-                outString += tileCode;
+                outString += mazeCell.openingsCode.toString(16);
             }
         }
         this.textArea.id = "codesTextArea";
@@ -741,7 +958,7 @@ var CodesMazeViewer = (function (_super) {
     return CodesMazeViewer;
 })(MazeViewer);
 /// <reference path="mazeViewer.ts" />
-/// <reference path="../MazeUtilities.ts" />
+/// <reference path="../MazeUtils.ts" />
 // Uses a HTML table with images added to cells (in this regard similar to imageMazeViewer). The difference
 // is that this class uses only a total of 5 images which are all superimposed on the same cell to display
 // that cell's configuration. The 5 images are a central square, and then four passages leading in the 
@@ -751,7 +968,7 @@ var CompositeImageMazeViewer = (function (_super) {
     function CompositeImageMazeViewer(maze) {
         _super.call(this, maze);
         this.cellSize = 10; //200 / this.maze.x;
-        this.robotIcon = MazeUtilities.createImage('images/robot.png', this.cellSize);
+        this.robotIcon = MazeUtils.createImage('images/robot.png', this.cellSize);
     }
     CompositeImageMazeViewer.prototype.displayMaze = function () {
         var table = document.createElement('table');
@@ -768,12 +985,12 @@ var CompositeImageMazeViewer = (function (_super) {
                 cell.style.border = '0px solid black';
                 cell.style.padding = '0';
                 cell.id = i + "," + j;
-                cell.appendChild(MazeUtilities.createImage('images/centre.png', this.cellSize));
+                cell.appendChild(MazeUtils.createImage('images/centre.png', this.cellSize));
                 // loop through openings and create image for each direction present 
                 var openings = this.maze.cells[i][j].openings;
                 for (var opening in openings) {
                     if (openings[opening]) {
-                        cell.appendChild(MazeUtilities.createImage('images/' + opening + '.png', this.cellSize));
+                        cell.appendChild(MazeUtils.createImage('images/' + opening + '.png', this.cellSize));
                     }
                 }
             }
@@ -801,7 +1018,7 @@ var CompositeImageMazeViewer = (function (_super) {
     };
     return CompositeImageMazeViewer;
 })(MazeViewer);
-/// <reference path="../MazeUtilities.ts" />
+/// <reference path="../MazeUtils.ts" />
 /// <reference path="mazeViewer.ts" />
 /// <reference path="../maze/cell.ts" />
 // uses a set of images of maze cells that are named by a hexadecimal character (see codesMazeView.ts). These
@@ -811,7 +1028,7 @@ var ImageMazeViewer = (function (_super) {
     function ImageMazeViewer(maze) {
         _super.call(this, maze);
         this.imageSize = 16; //400 / maze.x;
-        this.robotIcon = MazeUtilities.createImage('images/robot_test.png', this.imageSize);
+        this.robotIcon = MazeUtils.createImage('images/robot_test.png', this.imageSize);
     }
     ImageMazeViewer.prototype.displayMaze = function () {
         var table = document.createElement('table');
@@ -829,8 +1046,8 @@ var ImageMazeViewer = (function (_super) {
                 cell.style.border = '0px solid black';
                 cell.style.padding = '0';
                 cell.id = i + "," + j;
-                tileCode = MazeUtilities.cellToTile(this.maze.cells[i][j]);
-                cell.appendChild(MazeUtilities.createImage('images/' + tileCode + '.png', this.imageSize));
+                tileCode = this.maze.cells[i][j].openingsCode.toString(16);
+                cell.appendChild(MazeUtils.createImage('images/' + tileCode + '.png', this.imageSize));
             }
         }
         this.container.appendChild(table);

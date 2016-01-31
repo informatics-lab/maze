@@ -1,5 +1,8 @@
 /// <reference path="maze/maze.ts" />
 /// <reference path="maze/firstPersonMaze.ts" />
+/// <reference path="maze/mazeGenerationAlgorithm" />
+/// <reference path="maze/mazeGenerationGrowingTreeAlgorithm.ts" />
+/// <reference path="maze/mazeGenerationPrimsAlgorithm" />
 /// <reference path="robot/mazeRobot.ts" />
 /// <reference path="robot/robotAlgorithm.ts" />
 /// <reference path="robot/randomMouseRobotAlgorithm.ts" />
@@ -10,6 +13,7 @@
 
 var robot: Robot;
 var maze: Maze;
+var mazeGenerationAlgorithm: MazeGenerationAlgorithm;
 var userChoices;
 var mazeViewer: MazeViewer;
 
@@ -44,7 +48,8 @@ function generate() {
 	
 	userChoices = getUserOptionChoices();
 
-	maze = new Maze(userChoices.mazeWidth, userChoices.mazeHeight);
+	mazeGenerationAlgorithm = getMazeGenerationAlgorithm(userChoices.mazeGenerationAlgorithm);
+	maze = new Maze(userChoices.mazeWidth, userChoices.mazeHeight, mazeGenerationAlgorithm);
 	mazeViewer = getMazeViewer(userChoices.mazeDisplay, maze);
 	mazeViewer.displayMaze();
 	console.log("Maze generation complete.")
@@ -85,6 +90,7 @@ function getUserOptionChoices() {
 
 	var mazeWidthSelect = <HTMLSelectElement>document.getElementById("mazeWidthInput");
 	var mazeHeightSelect = <HTMLSelectElement>document.getElementById("mazeHeightInput");
+	var mazeGenerationAlgorithmSelect = <HTMLSelectElement>document.getElementById("mazeGenerationAlgorithmSelect");
 	var robotDelaySelect = <HTMLSelectElement>document.getElementById("robotDelayInput");
 	var robotAlgorithmSelect = <HTMLSelectElement>document.getElementById("robotAlgorithmSelect");
 	var mazeDisplaySelect = <HTMLSelectElement>document.getElementById("mazeDisplaySelect");
@@ -92,6 +98,7 @@ function getUserOptionChoices() {
 	var options = {
 		mazeWidth: mazeWidthSelect.value,
 		mazeHeight: mazeHeightSelect.value,
+		mazeGenerationAlgorithm: mazeGenerationAlgorithmSelect.options[mazeGenerationAlgorithmSelect.selectedIndex].value,
 		robotDelay: robotDelaySelect.value,
 		robotAlgorithm: robotAlgorithmSelect.options[robotAlgorithmSelect.selectedIndex].value,
 		mazeDisplay: mazeDisplaySelect.options[mazeDisplaySelect.selectedIndex].value
@@ -100,7 +107,15 @@ function getUserOptionChoices() {
 	return options;
 }
 
-function getMazeViewer(viewerType, maze): MazeViewer {
+function getMazeGenerationAlgorithm(algorithmType: string): MazeGenerationAlgorithm {
+	if (algorithmType == "growingTree") {
+		return new MazeGenerationGrowingTreeAlgorithm();
+	} else if (algorithmType == "prims") {
+		return new MazeGenerationPrimsAlgorithm();
+	}
+}
+
+function getMazeViewer(viewerType: string, maze: Maze): MazeViewer {
 	if (viewerType == "borders") {
 		return new BorderMazeViewer(maze);
 	 } else if (viewerType == "images") {
@@ -112,7 +127,7 @@ function getMazeViewer(viewerType, maze): MazeViewer {
 	 }
 }
 
-function getRobotAlgorithm(algorithmType: string, robot: Robot) {
+function getRobotAlgorithm(algorithmType: string, robot: Robot): RobotAlgorithm {
 	if (algorithmType == "randomMouse") {
 		return new RandomMouseRobotAlgorithm(robot);
 	} else if (algorithmType == "wallFollower") {

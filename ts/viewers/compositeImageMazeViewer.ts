@@ -1,5 +1,5 @@
 /// <reference path="mazeViewer.ts" />
-/// <reference path="../MazeUtilities.ts" />
+/// <reference path="../MazeUtils.ts" />
 
 // Uses a HTML table with images added to cells (in this regard similar to imageMazeViewer). The difference
 // is that this class uses only a total of 5 images which are all superimposed on the same cell to display
@@ -17,7 +17,7 @@ class CompositeImageMazeViewer extends MazeViewer {
 		super(maze);
 
 		this.cellSize = 10//200 / this.maze.x;
-		this.robotIcon = MazeUtilities.createImage('images/robot.png', this.cellSize);
+		this.robotIcon = MazeUtils.createImage('images/robot.png', this.cellSize);
 	}
 
 	displayMaze(): void {
@@ -36,13 +36,13 @@ class CompositeImageMazeViewer extends MazeViewer {
 				cell.style.padding = '0';
 				cell.id = i + "," + j;
 
-				cell.appendChild(MazeUtilities.createImage('images/centre.png', this.cellSize));
+				cell.appendChild(MazeUtils.createImage('images/centre.png', this.cellSize));
 
 				// loop through openings and create image for each direction present 
 				var openings = this.maze.cells[i][j].openings;
 				for (var opening in openings) {
 					if (openings[opening]) {
-						cell.appendChild(MazeUtilities.createImage('images/' + opening + '.png', this.cellSize));
+						cell.appendChild(MazeUtils.createImage('images/' + opening + '.png', this.cellSize));
 					}
 				}
 

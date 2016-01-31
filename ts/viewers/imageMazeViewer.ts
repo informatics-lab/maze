@@ -1,4 +1,4 @@
-/// <reference path="../MazeUtilities.ts" />
+/// <reference path="../MazeUtils.ts" />
 /// <reference path="mazeViewer.ts" />
 /// <reference path="../maze/cell.ts" />
 
@@ -16,7 +16,7 @@ class ImageMazeViewer extends MazeViewer {
 		super(maze);
 
 		this.imageSize = 16//400 / maze.x;
-		this.robotIcon = MazeUtilities.createImage('images/robot_test.png', this.imageSize);
+		this.robotIcon = MazeUtils.createImage('images/robot_test.png', this.imageSize);
 	}
 
 	displayMaze(): void {
@@ -36,9 +36,9 @@ class ImageMazeViewer extends MazeViewer {
 				cell.style.padding = '0';
 				cell.id = i + "," + j;
 
-				tileCode = MazeUtilities.cellToTile(this.maze.cells[i][j]);
+				tileCode = this.maze.cells[i][j].openingsCode.toString(16);
 
-				cell.appendChild(MazeUtilities.createImage('images/' + tileCode + '.png', this.imageSize));
+				cell.appendChild(MazeUtils.createImage('images/' + tileCode + '.png', this.imageSize));
 		  	}
 		}
 		this.container.appendChild(table);

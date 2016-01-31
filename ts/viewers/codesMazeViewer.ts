@@ -1,6 +1,6 @@
 /// <reference path="mazeViewer.ts" />
 /// <reference path="../maze/cell.ts" />
-/// <reference path="../mazeUtilities.ts" />
+/// <reference path="../mazeUtils.ts" />
 
 // An unusual maze viewer which doesn't produce a pictorial view of the maze, but simply encodes each cell 
 // in sequence (as reading a book from NW corner to SE corner) as a hexadecimal character based on the openings
@@ -25,10 +25,7 @@ class CodesMazeViewer extends MazeViewer {
 		for (var j = 0; j < this.maze.y; j++) {
 			for (var i = 0; i < this.maze.x; i++) {
 				mazeCell = this.maze.cells[i][j];
-
-				tileCode = MazeUtilities.cellToTile(mazeCell);
-				outString += tileCode;
-
+				outString += mazeCell.openingsCode.toString(16);
 			}
 		}
 
