@@ -34,7 +34,7 @@ function init(fn) {
 		console.log("Pre-existing robot has been told to quit. Waiting for a timeout equal to the robot's update interval before proceeding.");
 		setTimeout(function() { 
         	fn.call(this);
-    	}, robot.updateDelay);
+    	}, robot.renderer.delay);
 	} else {
 		fn.call(this);
 	}	
@@ -77,6 +77,10 @@ function solve() {
 	maze.reset();
 	document.getElementById("mazeDisplay").innerHTML = "";
 	
+
+
+	/* old version */
+	/*
 	var mazeForRobot = new FirstPersonMaze(maze);
 
 	robot = new Robot(mazeForRobot, mazeViewer, userChoices.robotDelay);
@@ -84,6 +88,14 @@ function solve() {
 	robot.setRobotAlgorithm(robotAlgorithm);
 
 	robot.trySolvingMaze();
+	*/
+
+	/* proposed new version */
+	robot = new Robot();
+	var robotAlgorithm: RobotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm, robot);
+	robot.robotAlgorithm = robotAlgorithm;
+
+	mazeViewer.showRobotInMaze(robot, maze, parseInt(userChoices.robotDelay));
 }
 
 function getUserOptionChoices() {

@@ -406,6 +406,25 @@ var MazeViewer = (function () {
         this.container = document.getElementById('mazeDisplay');
         this.mazeDisplayed = false;
     }
+    MazeViewer.prototype.showRobotInMaze = function (robot, maze, robotDelay) {
+        robot.maze = new FirstPersonMaze(maze);
+        var robotInMazeRenderer = {
+            delay: robotDelay,
+            render: this.updateRobotDisplay
+        };
+        robot.renderer = robotInMazeRenderer;
+        if (!this.mazeDisplayed) {
+            this.displayMaze();
+        }
+        this.createNStepsDisplay();
+        robot.callRobotLoopWithDelay(robot.robotLoop);
+    };
+    MazeViewer.prototype.createNStepsDisplay = function () {
+        var stepsDiv = document.createElement('div');
+        stepsDiv.id = "stepsDiv";
+        stepsDiv.innerHTML = "Number of robot moves: <span id='stepsSpan'>0</span>";
+        document.getElementById('mazeDisplay').appendChild(stepsDiv);
+    };
     return MazeViewer;
 })();
 /// <reference path="../maze/cell.ts" />
@@ -467,65 +486,75 @@ var RandomMouseRobotAlgorithm = (function (_super) {
 // A Robot to solve mazes. It is composed with a RobotAlgorithm - the type of which determines how it will
 // go about solving the maze
 var Robot = (function () {
-    function Robot(maze, mazeViewer, robotDelay) {
+    function Robot() {
         this.facing = 'south';
-        this.nSteps = 0;
-        this.stop = false;
-        this.maze = maze;
-        this.mazeViewer = mazeViewer;
+        this._renderer = null;
+        this._maze = null;
+        this._nSteps = 0;
+        this._stop = false;
         // use random mouse as the default algorithm
-        this.robotAlgorithm = new RandomMouseRobotAlgorithm(this);
-        this.updateDelay = robotDelay;
+        this._robotAlgorithm = new RandomMouseRobotAlgorithm(this);
     }
-    // TODO user proper 'set' setter?
-    Robot.prototype.setRobotAlgorithm = function (algorithm) {
-        this.robotAlgorithm = algorithm;
-    };
-    Robot.prototype.trySolvingMaze = function () {
-        if (!this.mazeViewer.mazeDisplayed) {
-            this.mazeViewer.displayMaze();
-        }
-        var stepsDiv = document.createElement('div');
-        stepsDiv.id = "stepsDiv";
-        stepsDiv.innerHTML = "Number of robot moves: <span id='stepsSpan'>0</span>";
-        document.getElementById('mazeDisplay').appendChild(stepsDiv);
-        this._createRobotLoopTimeout(this._robotLoop, this);
-    };
+    Object.defineProperty(Robot.prototype, "renderer", {
+        get: function () {
+            return this._renderer;
+        },
+        set: function (renderer) {
+            this._renderer = renderer;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Robot.prototype, "robotAlgorithm", {
+        set: function (algorithm) {
+            this._robotAlgorithm = algorithm;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(Robot.prototype, "maze", {
+        set: function (maze) {
+            this._maze = maze;
+        },
+        enumerable: true,
+        configurable: true
+    });
     // calling this tells a robot to quit. Note that it won't stop immediately, but will finish the current 
     // iteration around the '_robotLoop' function. Therefore it is only safe to assume that the robot has 
     // finally finished after a delay equal to its 'robotDelay' in milliseconds
     Robot.prototype.quit = function () {
-        this.stop = true;
+        this._stop = true;
     };
-    Robot.prototype._createRobotLoopTimeout = function (robotLoopFn, thisContext) {
+    Robot.prototype.callRobotLoopWithDelay = function (loopFunction) {
+        var thisContext = this;
         setTimeout(function () {
-            robotLoopFn.call(thisContext);
-        }, this.updateDelay);
+            loopFunction.call(thisContext);
+        }, this._renderer.delay);
     };
     // the main loop that the robot iterates through to solve the maze. Get current cell, decide which way
     // to turn next, move in that direction, update the display and check if we've finished or need to quit, or
     // should carry on
-    Robot.prototype._robotLoop = function () {
-        var cell = this.maze.getCurrentCell();
+    Robot.prototype.robotLoop = function () {
+        var cell = this._maze.getCurrentCell();
         // robot logic to decide which direction to face next 
-        this.facing = this.robotAlgorithm.chooseDirection(cell);
+        this.facing = this._robotAlgorithm.chooseDirection(cell);
         // move in chosen direction
-        this.maze.move(this.facing);
+        this._maze.move(this.facing);
         // update display
-        this.mazeViewer.updateRobotDisplay(cell);
+        this._renderer.render(cell);
         //check if we're at the exit, or if we need to stop, or if we carry on
         if (cell.isExit) {
-            console.log("Arrived at exit in ", this.nSteps, " steps!");
+            console.log("Arrived at exit in ", this._nSteps, " steps!");
             return;
         }
-        else if (this.stop) {
-            console.log("Robot told to stop. It travelled ", this.nSteps, " steps.");
+        else if (this._stop) {
+            console.log("Robot told to stop. It travelled ", this._nSteps, " steps.");
             return;
         }
         else {
-            this.nSteps++;
-            document.getElementById("stepsSpan").innerHTML = this.nSteps + '';
-            this._createRobotLoopTimeout(this._robotLoop, this);
+            this._nSteps++;
+            document.getElementById("stepsSpan").innerHTML = this._nSteps + '';
+            this.callRobotLoopWithDelay(this.robotLoop);
         }
     };
     // For a given cell get all directions which lead to another cell _ignoring the direction we've come from_
@@ -544,7 +573,7 @@ var Robot = (function () {
     };
     // Look in the maze in a given direction. Gets back an array of cells that are visible in that direction.
     Robot.prototype.lookToDirection = function (direction) {
-        return this.maze.look(direction);
+        return this._maze.look(direction);
     };
     // Based on an initial direcion and a turn (in degrees), return the new direction.
     Robot.prototype.getNewDirection = function (currentDirection, turn) {
@@ -821,7 +850,7 @@ function init(fn) {
         console.log("Pre-existing robot has been told to quit. Waiting for a timeout equal to the robot's update interval before proceeding.");
         setTimeout(function () {
             fn.call(this);
-        }, robot.updateDelay);
+        }, robot.renderer.delay);
     }
     else {
         fn.call(this);
@@ -857,11 +886,21 @@ function solve() {
     mazeViewer.resetMazeView();
     maze.reset();
     document.getElementById("mazeDisplay").innerHTML = "";
+    /* old version */
+    /*
     var mazeForRobot = new FirstPersonMaze(maze);
+
     robot = new Robot(mazeForRobot, mazeViewer, userChoices.robotDelay);
-    var robotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm, robot);
+    var robotAlgorithm: RobotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm, robot);
     robot.setRobotAlgorithm(robotAlgorithm);
+
     robot.trySolvingMaze();
+    */
+    /* proposed new version */
+    robot = new Robot();
+    var robotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm, robot);
+    robot.robotAlgorithm = robotAlgorithm;
+    mazeViewer.showRobotInMaze(robot, maze, parseInt(userChoices.robotDelay));
 }
 function getUserOptionChoices() {
     var mazeWidthSelect = document.getElementById("mazeWidthInput");
