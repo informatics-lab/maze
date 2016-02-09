@@ -27,20 +27,30 @@ abstract class MazeViewer {
 	abstract displayMaze(): void;
 
 	showRobotInMaze(robot: Robot, maze: Maze, robotDelay: number): void {
+		// Convert maze to first person maze (so robot only knows about cells it can 'see' from
+		// it's current position), and assign this to the robot.
 		robot.maze = new FirstPersonMaze(maze);
 
+		// Create a renderer to show robot navigate maze. Importantly we use the updateRobotDisplay
+		// function which is abstract here, and hence left up to the runtime subclass to implement. This
+		// is where we tailor the view to the user's choice of maze viewer
 		var robotInMazeRenderer: RobotInMazeRenderer = {
 			delay: robotDelay,
 			render: this.updateRobotDisplay
 		};
+
+		// Set the robot's renderer to the one we just created
 		robot.renderer = robotInMazeRenderer;
 
+		// If maze isn't already displayed then do so before we let the robot attempt it
 		if (!this.mazeDisplayed) {
 			this.displayMaze();
 		}
 
+		// Create the part of the display to hold the number of steps the robot has taken
 		this.createNStepsDisplay();
 
+		// Set the robot going by calling it's recursive loop method for the first time
 		robot.callRobotLoopWithDelay(robot.robotLoop);
 	}
 
