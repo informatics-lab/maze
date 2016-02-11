@@ -1,3 +1,5 @@
+/// <reference path="direction.ts" />
+
 // In which direction(s) is there an opening from a maze cell to neighbouring cells
 class CellOpenings {
 	north: boolean = false;
@@ -7,6 +9,24 @@ class CellOpenings {
 
 	constructor() {
 
+	}
+
+	getOpenDirections(): Direction[] {
+		var openDirections: Direction[] = [];
+		if (this.north) {
+			openDirections.push(Direction.N);
+		}
+		if (this.east) {
+			openDirections.push(Direction.E);
+		}
+		if (this.south) {
+			openDirections.push(Direction.S);
+		}
+		if (this.west) {
+			openDirections.push(Direction.W);
+		}
+
+		return openDirections;
 	}
 }
 
@@ -57,8 +77,8 @@ class Cell {
 	}
 
 	static codeToOpenings(openingsCode: number): CellOpenings {
-		var openings: CellOpenings = { north: false, east: false, south: false, west: false };
-
+		var openings: CellOpenings = new CellOpenings();
+		
 		var power: number;
 		while (openingsCode > 0) {
 			power = MazeUtils.getLargestPowerOfTwo(openingsCode);

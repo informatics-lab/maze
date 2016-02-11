@@ -21,7 +21,7 @@ class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
 		super(robot);
 	}
 
-	chooseDirection(cell: Cell) {
+	chooseDirection(cell: Cell): Direction {
 		this.currentCell = cell;
 		this.currentCell.robotVisited = true;
 	
@@ -41,7 +41,7 @@ class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
 		return direction;
 	}
 
-	chooseDirectionAtDeadEnd() {
+	chooseDirectionAtDeadEnd(): Direction {
 		// update backtracking
 		this.backtracking = true;
 	
@@ -49,7 +49,7 @@ class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
 		return super.chooseDirectionAtDeadEnd();
 	}
 
-	chooseDirectionAtStraightOrTurn(openings) {
+	chooseDirectionAtStraightOrTurn(openings: Direction[]): Direction {
 		// update backtracking
 		if (this.currentCell.isEntry && this.backtracking) {
 			this.backtracking = false;
@@ -59,7 +59,7 @@ class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
 		return super.chooseDirectionAtStraightOrTurn(openings);
 	}
 
-	chooseDirectionAtJunction(openings) {
+	chooseDirectionAtJunction(openings: Direction[]): Direction {
 		// pick random direction that is open and we haven't already visited
 		var direction;
 		var nonVisitedOpenings = [];

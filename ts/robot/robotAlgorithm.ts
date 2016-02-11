@@ -15,10 +15,10 @@ abstract class RobotAlgorithm {
 		this.robot = robot;
 	}
 
-	chooseDirection(cell: Cell) {
-		var direction: string;
+	chooseDirection(cell: Cell): Direction {
+		var direction: Direction;
 
-		var newOpenings: CellOpenings[] = this.robot.getNewOpenings(cell);
+		var newOpenings: Direction[] = this.robot.getNewOpenings(cell);
 
 		if (newOpenings.length == 0) {
 			direction = this.chooseDirectionAtDeadEnd();
@@ -31,15 +31,15 @@ abstract class RobotAlgorithm {
 		return direction;
 	}
 
-	chooseDirectionAtDeadEnd() {
+	chooseDirectionAtDeadEnd(): Direction {
 		return this.robot.getNewDirection(this.robot.facing, 180);
 	}
 
-	chooseDirectionAtStraightOrTurn(openings) {
+	chooseDirectionAtStraightOrTurn(openings: Direction[]): Direction {
 		return openings[0];
 	}
 
-	abstract chooseDirectionAtJunction(openings);
+	abstract chooseDirectionAtJunction(openings: Direction[]): Direction;
 }
 
 

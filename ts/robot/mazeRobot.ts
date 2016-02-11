@@ -9,7 +9,7 @@
 
 class Robot {
 
-	facing: string = 'south';
+	facing: Direction = Direction.S;
 
 	private _renderer: RobotInMazeRenderer = null;
 	private _maze: FirstPersonMaze = null;
@@ -83,13 +83,14 @@ class Robot {
 
 	// For a given cell get all directions which lead to another cell _ignoring the direction we've come from_
 	// i.e. ignore the opening that is 180 degrees from our facing direction as we've just come from there!
-	getNewOpenings(cell): CellOpenings[] {
-		var allOpenings = cell.openings;
+	getNewOpenings(cell: Cell): Direction[] {
+		var openDirections: Direction[] = cell.openings.getOpenDirections();
+
 		//console.log("robot is in a cell with openings: ", allOpenings);
-		var newOpenings: CellOpenings[] = [];
-		for (var opening in allOpenings) {
-			if (allOpenings[opening] && opening != this.getNewDirection(this.facing, 180)) {
-				newOpenings.push(opening);
+		var newOpenings: Direction[] = [];
+		for (var direction in openDirections) {
+			if (openDirections[direction] != this.getNewDirection(this.facing, 180)) {
+				newOpenings.push(openDirections[direction]);
 			}
 		}
 
@@ -98,13 +99,13 @@ class Robot {
 	}
 
 	// Look in the maze in a given direction. Gets back an array of cells that are visible in that direction.
-	lookToDirection(direction: string): Cell[] {
+	lookToDirection(direction: Direction): Cell[] {
 		return this._maze.look(direction);
 	}
 
 	// Based on an initial direcion and a turn (in degrees), return the new direction.
-	getNewDirection(currentDirection: string, turn: number): string {
-		var directions = ['north', 'east', 'south', 'west'];
+	getNewDirection(currentDirection: Direction, turn: number): Direction {
+		var directions = [Direction.N, Direction.E, Direction.S, Direction.W];
 		var indexChange = turn / 90;
 		var currentDirectionIndex = 0;
 		for (var currentDirectionIndex = 0; currentDirectionIndex < directions.length; currentDirectionIndex++) {

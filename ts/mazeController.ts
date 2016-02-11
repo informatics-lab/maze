@@ -77,20 +77,6 @@ function solve() {
 	maze.reset();
 	document.getElementById("mazeDisplay").innerHTML = "";
 	
-
-
-	/* old version */
-	/*
-	var mazeForRobot = new FirstPersonMaze(maze);
-
-	robot = new Robot(mazeForRobot, mazeViewer, userChoices.robotDelay);
-	var robotAlgorithm: RobotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm, robot);
-	robot.setRobotAlgorithm(robotAlgorithm);
-
-	robot.trySolvingMaze();
-	*/
-
-	/* proposed new version */
 	robot = new Robot();
 	var robotAlgorithm: RobotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm, robot);
 	robot.robotAlgorithm = robotAlgorithm;

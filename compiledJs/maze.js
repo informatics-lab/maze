@@ -1,3 +1,58 @@
+var Direction;
+(function (Direction) {
+    Direction[Direction["N"] = 8] = "N";
+    Direction[Direction["E"] = 4] = "E";
+    Direction[Direction["S"] = 2] = "S";
+    Direction[Direction["W"] = 1] = "W";
+})(Direction || (Direction = {}));
+;
+// Using a module allows us to create something like a static class
+var DirectionUtils;
+(function (DirectionUtils) {
+    function dX(dir) {
+        switch (dir) {
+            case Direction.E: return 1;
+            case Direction.W: return -1;
+            case Direction.N: return 0;
+            case Direction.S: return 0;
+        }
+    }
+    DirectionUtils.dX = dX;
+    function dY(dir) {
+        switch (dir) {
+            case Direction.E: return 0;
+            case Direction.W: return 0;
+            case Direction.N: return -1;
+            case Direction.S: return 1;
+        }
+    }
+    DirectionUtils.dY = dY;
+    function opposite(dir) {
+        switch (dir) {
+            case Direction.E: return Direction.W;
+            case Direction.W: return Direction.E;
+            case Direction.N: return Direction.S;
+            case Direction.S: return Direction.N;
+        }
+    }
+    DirectionUtils.opposite = opposite;
+    function getDirection(here, next) {
+        if (next.x > here.x) {
+            return Direction.E;
+        }
+        if (next.x < here.x) {
+            return Direction.W;
+        }
+        if (next.y > here.y) {
+            return Direction.S;
+        }
+        if (next.y < here.y) {
+            return Direction.N;
+        }
+    }
+    DirectionUtils.getDirection = getDirection;
+})(DirectionUtils || (DirectionUtils = {}));
+/// <reference path="direction.ts" />
 // In which direction(s) is there an opening from a maze cell to neighbouring cells
 var CellOpenings = (function () {
     function CellOpenings() {
@@ -6,6 +61,22 @@ var CellOpenings = (function () {
         this.south = false;
         this.west = false;
     }
+    CellOpenings.prototype.getOpenDirections = function () {
+        var openDirections = [];
+        if (this.north) {
+            openDirections.push(Direction.N);
+        }
+        if (this.east) {
+            openDirections.push(Direction.E);
+        }
+        if (this.south) {
+            openDirections.push(Direction.S);
+        }
+        if (this.west) {
+            openDirections.push(Direction.W);
+        }
+        return openDirections;
+    };
     return CellOpenings;
 })();
 // Note that visited here refers to whether the cell has been visited or not during maze _creation_ (not maze solving)
@@ -57,7 +128,7 @@ var Cell = (function () {
         return code;
     };
     Cell.codeToOpenings = function (openingsCode) {
-        var openings = { north: false, east: false, south: false, west: false };
+        var openings = new CellOpenings();
         var power;
         while (openingsCode > 0) {
             power = MazeUtils.getLargestPowerOfTwo(openingsCode);
@@ -191,16 +262,16 @@ var FirstPersonMaze = (function () {
     FirstPersonMaze.prototype._changeCoordinatesInDirection = function (coordinates, direction) {
         var newCoordinates = coordinates;
         var cell = this._cells[coordinates.x][coordinates.y];
-        if (direction == 'west' && cell.openings.west) {
+        if (direction == Direction.W && cell.openings.west) {
             newCoordinates.x -= 1;
         }
-        else if (direction == 'east' && cell.openings.east) {
+        else if (direction == Direction.E && cell.openings.east) {
             newCoordinates.x += 1;
         }
-        else if (direction == 'north' && cell.openings.north) {
+        else if (direction == Direction.N && cell.openings.north) {
             newCoordinates.y -= 1;
         }
-        else if (direction == 'south' && cell.openings.south) {
+        else if (direction == Direction.S && cell.openings.south) {
             newCoordinates.y += 1;
         }
         else {
@@ -210,60 +281,6 @@ var FirstPersonMaze = (function () {
     };
     return FirstPersonMaze;
 })();
-var Direction;
-(function (Direction) {
-    Direction[Direction["N"] = 8] = "N";
-    Direction[Direction["E"] = 4] = "E";
-    Direction[Direction["S"] = 2] = "S";
-    Direction[Direction["W"] = 1] = "W";
-})(Direction || (Direction = {}));
-;
-// Using a module allows us to create something like a static class
-var DirectionUtils;
-(function (DirectionUtils) {
-    function dX(dir) {
-        switch (dir) {
-            case Direction.E: return 1;
-            case Direction.W: return -1;
-            case Direction.N: return 0;
-            case Direction.S: return 0;
-        }
-    }
-    DirectionUtils.dX = dX;
-    function dY(dir) {
-        switch (dir) {
-            case Direction.E: return 0;
-            case Direction.W: return 0;
-            case Direction.N: return -1;
-            case Direction.S: return 1;
-        }
-    }
-    DirectionUtils.dY = dY;
-    function opposite(dir) {
-        switch (dir) {
-            case Direction.E: return Direction.W;
-            case Direction.W: return Direction.E;
-            case Direction.N: return Direction.S;
-            case Direction.S: return Direction.N;
-        }
-    }
-    DirectionUtils.opposite = opposite;
-    function getDirection(here, next) {
-        if (next.x > here.x) {
-            return Direction.E;
-        }
-        if (next.x < here.x) {
-            return Direction.W;
-        }
-        if (next.y > here.y) {
-            return Direction.S;
-        }
-        if (next.y < here.y) {
-            return Direction.N;
-        }
-    }
-    DirectionUtils.getDirection = getDirection;
-})(DirectionUtils || (DirectionUtils = {}));
 /// <reference path="cell.ts" />
 /// <reference path="mazeGenerationAlgorithm.ts" />
 /// <reference path="direction.ts" />
@@ -496,7 +513,7 @@ var RandomMouseRobotAlgorithm = (function (_super) {
 // go about solving the maze
 var Robot = (function () {
     function Robot() {
-        this.facing = 'south';
+        this.facing = Direction.S;
         this._renderer = null;
         this._maze = null;
         this._nSteps = 0;
@@ -569,12 +586,12 @@ var Robot = (function () {
     // For a given cell get all directions which lead to another cell _ignoring the direction we've come from_
     // i.e. ignore the opening that is 180 degrees from our facing direction as we've just come from there!
     Robot.prototype.getNewOpenings = function (cell) {
-        var allOpenings = cell.openings;
+        var openDirections = cell.openings.getOpenDirections();
         //console.log("robot is in a cell with openings: ", allOpenings);
         var newOpenings = [];
-        for (var opening in allOpenings) {
-            if (allOpenings[opening] && opening != this.getNewDirection(this.facing, 180)) {
-                newOpenings.push(opening);
+        for (var direction in openDirections) {
+            if (openDirections[direction] != this.getNewDirection(this.facing, 180)) {
+                newOpenings.push(openDirections[direction]);
             }
         }
         //console.log("robot is in a cell with non-turn-around openings: ", newOpenings);
@@ -586,7 +603,7 @@ var Robot = (function () {
     };
     // Based on an initial direcion and a turn (in degrees), return the new direction.
     Robot.prototype.getNewDirection = function (currentDirection, turn) {
-        var directions = ['north', 'east', 'south', 'west'];
+        var directions = [Direction.N, Direction.E, Direction.S, Direction.W];
         var indexChange = turn / 90;
         var currentDirectionIndex = 0;
         for (var currentDirectionIndex = 0; currentDirectionIndex < directions.length; currentDirectionIndex++) {
@@ -895,17 +912,6 @@ function solve() {
     mazeViewer.resetMazeView();
     maze.reset();
     document.getElementById("mazeDisplay").innerHTML = "";
-    /* old version */
-    /*
-    var mazeForRobot = new FirstPersonMaze(maze);
-
-    robot = new Robot(mazeForRobot, mazeViewer, userChoices.robotDelay);
-    var robotAlgorithm: RobotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm, robot);
-    robot.setRobotAlgorithm(robotAlgorithm);
-
-    robot.trySolvingMaze();
-    */
-    /* proposed new version */
     robot = new Robot();
     var robotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm, robot);
     robot.robotAlgorithm = robotAlgorithm;

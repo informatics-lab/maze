@@ -28,7 +28,7 @@ class FirstPersonMaze {
 		return this._currentCell;
 	}
 
-	move(facing: string) {
+	move(facing: Direction) {
 		this._currentCoordinates = this._changeCoordinatesInDirection(this._currentCoordinates, facing);
 		if (this._currentCoordinates == null) {
 			return false
@@ -39,7 +39,7 @@ class FirstPersonMaze {
 		}
 	}
 
-	look(direction: string): Cell[] {
+	look(direction: Direction): Cell[] {
 		// get array of cells in a straight line in this direction until we come to a wall
 		var lookCells: Cell[] = [];
 		var coordinates: coordinates = {
@@ -56,18 +56,18 @@ class FirstPersonMaze {
 		return lookCells;
 	}
 
-	private _changeCoordinatesInDirection(coordinates: coordinates, direction: string) {
+	private _changeCoordinatesInDirection(coordinates: coordinates, direction: Direction): coordinates {
 
 		var newCoordinates = coordinates;
 		var cell = this._cells[coordinates.x][coordinates.y];
 
-		if (direction == 'west' && cell.openings.west) {
+		if (direction == Direction.W && cell.openings.west) {
 			newCoordinates.x -= 1;
-		} else if (direction == 'east' && cell.openings.east) {
+		} else if (direction == Direction.E && cell.openings.east) {
 			newCoordinates.x += 1;
-		} else if (direction == 'north' && cell.openings.north) {
+		} else if (direction == Direction.N && cell.openings.north) {
 			newCoordinates.y -= 1;
-		} else if (direction == 'south' && cell.openings.south) {
+		} else if (direction == Direction.S && cell.openings.south) {
 			newCoordinates.y += 1;
 		} else {
 			return null;

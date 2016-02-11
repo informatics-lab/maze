@@ -14,7 +14,7 @@ class WallFollowerRobotAlgorithm extends RobotAlgorithm {
 
 	// The wall follower chooses the right-most opening that is available 
 	// (choice of right-most instead of left-most was arbitrary)
-	chooseDirectionAtJunction(openings) {
+	chooseDirectionAtJunction(openings: Direction[]): Direction {
 		var newDirection = this.robot.getNewDirection(this.robot.facing, 90);
 		while (openings.indexOf(newDirection) == -1) {
 			newDirection = this.robot.getNewDirection(newDirection, -90);
