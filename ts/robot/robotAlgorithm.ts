@@ -10,12 +10,14 @@
 abstract class RobotAlgorithm {
 
 	robot: Robot;
+	mazeSolvingCellFactory: MazeSolvingCellFactory;
 
 	constructor(robot: Robot) {
 		this.robot = robot;
+		this.mazeSolvingCellFactory = new DefaultMazeSolvingCellFactory();
 	}
 
-	chooseDirection(cell: Cell): Direction {
+	chooseDirection(cell: MazeSolvingCell): Direction {
 		var direction: Direction;
 
 		var newOpenings: Direction[] = this.robot.getNewOpenings(cell);

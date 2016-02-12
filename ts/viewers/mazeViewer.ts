@@ -29,7 +29,7 @@ abstract class MazeViewer {
 	showRobotInMaze(robot: Robot, maze: Maze, robotDelay: number): void {
 		// Convert maze to first person maze (so robot only knows about cells it can 'see' from
 		// it's current position), and assign this to the robot.
-		robot.maze = new FirstPersonMaze(maze);
+		robot.maze = new FirstPersonMaze(maze, robot.robotAlgorithm.mazeSolvingCellFactory);
 
 		// Create a renderer to show robot navigate maze. Importantly we use the updateRobotDisplay
 		// function which is abstract here, and hence left up to the runtime subclass to implement. This

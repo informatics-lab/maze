@@ -34,6 +34,10 @@ class Robot {
 		this._robotAlgorithm = algorithm;
 	}
 
+	get robotAlgorithm() {
+		return this._robotAlgorithm;
+	}
+
 	set maze(maze: FirstPersonMaze) {
 		this._maze = maze;
 	}
@@ -56,7 +60,7 @@ class Robot {
 	// to turn next, move in that direction, update the display and check if we've finished or need to quit, or
 	// should carry on
 	robotLoop(): void {
-		var cell: Cell = this._maze.getCurrentCell();
+		var cell: MazeSolvingCell = this._maze.getCurrentCell();
 	
 		// robot logic to decide which direction to face next 
 		this.facing = this._robotAlgorithm.chooseDirection(cell);
@@ -83,7 +87,7 @@ class Robot {
 
 	// For a given cell get all directions which lead to another cell _ignoring the direction we've come from_
 	// i.e. ignore the opening that is 180 degrees from our facing direction as we've just come from there!
-	getNewOpenings(cell: Cell): Direction[] {
+	getNewOpenings(cell: MazeSolvingCell): Direction[] {
 		var openDirections: Direction[] = cell.openings.getOpenDirections();
 
 		//console.log("robot is in a cell with openings: ", allOpenings);
@@ -99,7 +103,7 @@ class Robot {
 	}
 
 	// Look in the maze in a given direction. Gets back an array of cells that are visible in that direction.
-	lookToDirection(direction: Direction): Cell[] {
+	lookToDirection(direction: Direction): MazeSolvingCell[] {
 		return this._maze.look(direction);
 	}
 

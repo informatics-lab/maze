@@ -14,21 +14,21 @@ interface coordinates {
 
 class FirstPersonMaze {
 
-	private _cells: Cell[][];
+	private _cells: MazeSolvingCell[][];
 	private _currentCoordinates: coordinates;
 	private _currentCell: Cell
 
-	constructor(thirdPersonMaze: Maze) {
-		this._cells = thirdPersonMaze.cells;
+	constructor(thirdPersonMaze: Maze, mazeSolvingCellFactory: MazeSolvingCellFactory) {
+		this._convertCellsToMazeSolvingCells(thirdPersonMaze, mazeSolvingCellFactory)
 		this._currentCoordinates = { x: 0, y: 0 };
 		this._currentCell = this._cells[this._currentCoordinates.x][this._currentCoordinates.y];
 	}
 
-	getCurrentCell(): Cell {
+	getCurrentCell(): MazeSolvingCell {
 		return this._currentCell;
 	}
 
-	move(facing: Direction) {
+	move(facing: Direction): boolean {
 		this._currentCoordinates = this._changeCoordinatesInDirection(this._currentCoordinates, facing);
 		if (this._currentCoordinates == null) {
 			return false
@@ -39,9 +39,9 @@ class FirstPersonMaze {
 		}
 	}
 
-	look(direction: Direction): Cell[] {
+	look(direction: Direction): MazeSolvingCell[] {
 		// get array of cells in a straight line in this direction until we come to a wall
-		var lookCells: Cell[] = [];
+		var lookCells: MazeSolvingCell[] = [];
 		var coordinates: coordinates = {
 			x: this._currentCoordinates.x,
 			y: this._currentCoordinates.y
@@ -76,4 +76,22 @@ class FirstPersonMaze {
 		return newCoordinates;
 	}
 
+	// convert the third-person maze's cells (which will be cells used in generating the maze) into
+	// cells for solving the maze. These will have different properties needed by robots solving the maze
+	// - e.g. a property to keep track of a line that the robot may have drawn while navigating the maze
+	private _convertCellsToMazeSolvingCells(thirdPersonMaze: Maze, mazeSolvingCellFactory: MazeSolvingCellFactory): void {
+		this._cells = [];
+		for (var i = 0; i < maze.x; i++) {
+			this._cells[i] = [];
+			for (var j = 0; j < maze.y; j++) {
+
+				var mazeGenerationCell = thirdPersonMaze.cells[i][j];
+				var mazeSolvingCell = mazeSolvingCellFactory.createCell(i, j);
+				mazeSolvingCell.isEntry = mazeGenerationCell.isEntry;
+				mazeSolvingCell.isExit = mazeGenerationCell.isExit;
+				mazeSolvingCell.openings = mazeGenerationCell.openings;
+				this._cells[i][j] = mazeSolvingCell;
+			}
+		}
+	}
 }

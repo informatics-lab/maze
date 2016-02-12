@@ -30,10 +30,7 @@ class CellOpenings {
 	}
 }
 
-// Note that visited here refers to whether the cell has been visited or not during maze _creation_ (not maze solving)
 class Cell {
-	visited: boolean;
-	frontier: boolean;
 	isExit: boolean;
 	isEntry: boolean;
 	private _openings: CellOpenings;
@@ -42,8 +39,6 @@ class Cell {
 
 	constructor(i: number, j: number) {
 		this.id = i + "," + j;
-		this.visited = false;
-		this.frontier = false;
 		this.isExit = false;
 		this.isEntry = false;
 		this.openings = new CellOpenings();
@@ -78,7 +73,7 @@ class Cell {
 
 	static codeToOpenings(openingsCode: number): CellOpenings {
 		var openings: CellOpenings = new CellOpenings();
-		
+
 		var power: number;
 		while (openingsCode > 0) {
 			power = MazeUtils.getLargestPowerOfTwo(openingsCode);
@@ -97,5 +92,62 @@ class Cell {
 	}
 }
 
+class MazeGeneratingCell extends Cell {
+	constructor(i: number, j: number) {
+		super(i, j);
+	}
+}
 
+class MazeSolvingCell extends Cell {
+	constructor(i: number, j: number) {
+		super(i, j);
+	}
+}
 
+class PrimsCell extends MazeGeneratingCell {
+	frontier: boolean;
+	visited: boolean;
+
+	constructor(i: number, j: number) {
+		super(i, j);
+		this.frontier = false;
+		this.visited = false;
+	}
+}
+
+class RecursiveBacktrackingCell extends MazeSolvingCell {
+	lineDrawn: boolean;
+	robotVisited: boolean;
+
+	constructor(i: number, j: number) {
+		super(i, j);
+		this.lineDrawn = false;
+		this.robotVisited = false;
+	}
+}
+
+abstract class MazeSolvingCellFactory {
+	constructor() { }
+
+	abstract createCell(i: number, j: number): MazeSolvingCell;
+}
+
+class RecursiveBacktrackingCellFactory extends MazeSolvingCellFactory {
+	constructor() {
+		super();
+	}
+
+	createCell(i: number, j: number): MazeSolvingCell {
+		return new RecursiveBacktrackingCell(i, j);
+	}
+}
+
+class DefaultMazeSolvingCellFactory extends MazeSolvingCellFactory {
+	constructor() {
+		super();
+	}
+
+	createCell(i: number, j: number): MazeSolvingCell {
+		return new MazeSolvingCell(i, j);
+	}
+}

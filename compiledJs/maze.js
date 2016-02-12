@@ -53,6 +53,11 @@ var DirectionUtils;
     DirectionUtils.getDirection = getDirection;
 })(DirectionUtils || (DirectionUtils = {}));
 /// <reference path="direction.ts" />
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 // In which direction(s) is there an opening from a maze cell to neighbouring cells
 var CellOpenings = (function () {
     function CellOpenings() {
@@ -79,12 +84,9 @@ var CellOpenings = (function () {
     };
     return CellOpenings;
 })();
-// Note that visited here refers to whether the cell has been visited or not during maze _creation_ (not maze solving)
 var Cell = (function () {
     function Cell(i, j) {
         this.id = i + "," + j;
-        this.visited = false;
-        this.frontier = false;
         this.isExit = false;
         this.isEntry = false;
         this.openings = new CellOpenings();
@@ -150,6 +152,63 @@ var Cell = (function () {
     };
     return Cell;
 })();
+var MazeGeneratingCell = (function (_super) {
+    __extends(MazeGeneratingCell, _super);
+    function MazeGeneratingCell(i, j) {
+        _super.call(this, i, j);
+    }
+    return MazeGeneratingCell;
+})(Cell);
+var MazeSolvingCell = (function (_super) {
+    __extends(MazeSolvingCell, _super);
+    function MazeSolvingCell(i, j) {
+        _super.call(this, i, j);
+    }
+    return MazeSolvingCell;
+})(Cell);
+var PrimsCell = (function (_super) {
+    __extends(PrimsCell, _super);
+    function PrimsCell(i, j) {
+        _super.call(this, i, j);
+        this.frontier = false;
+        this.visited = false;
+    }
+    return PrimsCell;
+})(MazeGeneratingCell);
+var RecursiveBacktrackingCell = (function (_super) {
+    __extends(RecursiveBacktrackingCell, _super);
+    function RecursiveBacktrackingCell(i, j) {
+        _super.call(this, i, j);
+        this.lineDrawn = false;
+        this.robotVisited = false;
+    }
+    return RecursiveBacktrackingCell;
+})(MazeSolvingCell);
+var MazeSolvingCellFactory = (function () {
+    function MazeSolvingCellFactory() {
+    }
+    return MazeSolvingCellFactory;
+})();
+var RecursiveBacktrackingCellFactory = (function (_super) {
+    __extends(RecursiveBacktrackingCellFactory, _super);
+    function RecursiveBacktrackingCellFactory() {
+        _super.call(this);
+    }
+    RecursiveBacktrackingCellFactory.prototype.createCell = function (i, j) {
+        return new RecursiveBacktrackingCell(i, j);
+    };
+    return RecursiveBacktrackingCellFactory;
+})(MazeSolvingCellFactory);
+var DefaultMazeSolvingCellFactory = (function (_super) {
+    __extends(DefaultMazeSolvingCellFactory, _super);
+    function DefaultMazeSolvingCellFactory() {
+        _super.call(this);
+    }
+    DefaultMazeSolvingCellFactory.prototype.createCell = function (i, j) {
+        return new MazeSolvingCell(i, j);
+    };
+    return DefaultMazeSolvingCellFactory;
+})(MazeSolvingCellFactory);
 /// <reference path="cell.ts" />
 var MazeGenerationAlgorithm = (function () {
     function MazeGenerationAlgorithm() {
@@ -164,7 +223,7 @@ var MazeGenerationAlgorithm = (function () {
         for (var i = 0; i < width; i++) {
             cells[i] = [];
             for (var j = 0; j < height; j++) {
-                var cell = new Cell(i, j);
+                var cell = this.createCell(i, j);
                 cells[i].push(cell);
             }
         }
@@ -198,23 +257,6 @@ var Maze = (function () {
             this.createMaze();
         }
     }
-    Maze.prototype.reset = function () {
-        for (var i = 0; i < this.x; i++) {
-            for (var j = 0; j < this.y; j++) {
-                var cell = this.cells[i][j];
-                // remove any cell properties that aren't in the 'core' list. This ensures
-                // that any properties added by previous robots are removed ready for new robot
-                // TODO: refactor so that we don't need to do this!
-                var coreProperties = ['visited', 'frontier', 'isExit', 'isEntry', 'openings', 'openingsCode', '_openings', '_openingsCode', 'id'];
-                for (var property in cell) {
-                    if (coreProperties.indexOf(property) == -1) {
-                        // remove this non-core property
-                        delete cell[property];
-                    }
-                }
-            }
-        }
-    };
     Maze.prototype.createMaze = function () {
         this.cells = this.generationAlgorithm.generateMaze(this.x, this.y);
     };
@@ -226,8 +268,8 @@ var Maze = (function () {
 // this FirstPersonMaze class will only allow clients to see where they are now, to look in a direction
 // or to move one cell in a given direction.
 var FirstPersonMaze = (function () {
-    function FirstPersonMaze(thirdPersonMaze) {
-        this._cells = thirdPersonMaze.cells;
+    function FirstPersonMaze(thirdPersonMaze, mazeSolvingCellFactory) {
+        this._convertCellsToMazeSolvingCells(thirdPersonMaze, mazeSolvingCellFactory);
         this._currentCoordinates = { x: 0, y: 0 };
         this._currentCell = this._cells[this._currentCoordinates.x][this._currentCoordinates.y];
     }
@@ -279,22 +321,37 @@ var FirstPersonMaze = (function () {
         }
         return newCoordinates;
     };
+    // convert the third-person maze's cells (which will be cells used in generating the maze) into
+    // cells for solving the maze. These will have different properties needed by robots solving the maze
+    // - e.g. a property to keep track of a line that the robot may have drawn while navigating the maze
+    FirstPersonMaze.prototype._convertCellsToMazeSolvingCells = function (thirdPersonMaze, mazeSolvingCellFactory) {
+        this._cells = [];
+        for (var i = 0; i < maze.x; i++) {
+            this._cells[i] = [];
+            for (var j = 0; j < maze.y; j++) {
+                var mazeGenerationCell = thirdPersonMaze.cells[i][j];
+                var mazeSolvingCell = mazeSolvingCellFactory.createCell(i, j);
+                mazeSolvingCell.isEntry = mazeGenerationCell.isEntry;
+                mazeSolvingCell.isExit = mazeGenerationCell.isExit;
+                mazeSolvingCell.openings = mazeGenerationCell.openings;
+                this._cells[i][j] = mazeSolvingCell;
+            }
+        }
+    };
     return FirstPersonMaze;
 })();
 /// <reference path="cell.ts" />
 /// <reference path="mazeGenerationAlgorithm.ts" />
 /// <reference path="direction.ts" />
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
 // See (e.g.) http://weblog.jamisbuck.org/2011/1/27/maze-generation-growing-tree-algorithm
 var MazeGenerationGrowingTreeAlgorithm = (function (_super) {
     __extends(MazeGenerationGrowingTreeAlgorithm, _super);
     function MazeGenerationGrowingTreeAlgorithm() {
         _super.call(this);
     }
+    MazeGenerationGrowingTreeAlgorithm.prototype.createCell = function (i, j) {
+        return new MazeGeneratingCell(i, j);
+    };
     MazeGenerationGrowingTreeAlgorithm.prototype.generateMazeInMatrix = function (mazeMatrix) {
         var maxX = mazeMatrix.length;
         var maxY = mazeMatrix[0].length;
@@ -348,6 +405,9 @@ var MazeGenerationPrimsAlgorithm = (function (_super) {
         _super.call(this);
         this.frontier = []; // list of cells neighbouring those cells already in maze
     }
+    MazeGenerationPrimsAlgorithm.prototype.createCell = function (i, j) {
+        return new PrimsCell(i, j);
+    };
     MazeGenerationPrimsAlgorithm.prototype.generateMazeInMatrix = function (mazeMatrix) {
         var maxX = mazeMatrix.length;
         var maxY = mazeMatrix[0].length;
@@ -426,7 +486,7 @@ var MazeViewer = (function () {
     MazeViewer.prototype.showRobotInMaze = function (robot, maze, robotDelay) {
         // Convert maze to first person maze (so robot only knows about cells it can 'see' from
         // it's current position), and assign this to the robot.
-        robot.maze = new FirstPersonMaze(maze);
+        robot.maze = new FirstPersonMaze(maze, robot.robotAlgorithm.mazeSolvingCellFactory);
         // Create a renderer to show robot navigate maze. Importantly we use the updateRobotDisplay
         // function which is abstract here, and hence left up to the runtime subclass to implement. This
         // is where we tailor the view to the user's choice of maze viewer
@@ -464,6 +524,7 @@ var MazeViewer = (function () {
 var RobotAlgorithm = (function () {
     function RobotAlgorithm(robot) {
         this.robot = robot;
+        this.mazeSolvingCellFactory = new DefaultMazeSolvingCellFactory();
     }
     RobotAlgorithm.prototype.chooseDirection = function (cell) {
         var direction;
@@ -532,6 +593,9 @@ var Robot = (function () {
         configurable: true
     });
     Object.defineProperty(Robot.prototype, "robotAlgorithm", {
+        get: function () {
+            return this._robotAlgorithm;
+        },
         set: function (algorithm) {
             this._robotAlgorithm = algorithm;
         },
@@ -654,6 +718,7 @@ var RecursiveBacktrackingRobotAlgorithm = (function (_super) {
         _super.call(this, robot);
         this.currentCell = null;
         this.backtracking = false;
+        this.mazeSolvingCellFactory = new RecursiveBacktrackingCellFactory();
     }
     RecursiveBacktrackingRobotAlgorithm.prototype.chooseDirection = function (cell) {
         this.currentCell = cell;
@@ -802,42 +867,26 @@ var BorderMazeViewer = (function (_super) {
         }
         this.container.appendChild(table);
         this.mazeDisplayed = true;
-        // set up the current display cell ready for if/when we need to display the maze being solved
-        var entryCellId = this.maze.cells[0][0].id;
-        this.currentDisplayCell = document.getElementById(entryCellId);
     };
     BorderMazeViewer.prototype.updateRobotDisplay = function (cell) {
-        this.currentDisplayCell = document.getElementById(cell.id);
-        if (this.prevDisplayCell) {
-            if (this.prevDisplayCell.line) {
-                this.prevDisplayCell.style.backgroundColor = 'orange';
+        if (this.prevCell) {
+            if (this.prevCell.lineDrawn) {
+                document.getElementById(this.prevCell.id).style.backgroundColor = 'orange';
             }
             else {
-                this.prevDisplayCell.style.backgroundColor = 'yellow';
+                document.getElementById(this.prevCell.id).style.backgroundColor = 'yellow';
             }
         }
-        if (cell.lineDrawn) {
-            this.currentDisplayCell.line = true;
-        }
-        else {
-            this.currentDisplayCell.line = false;
-        }
-        this.currentDisplayCell.style.backgroundColor = 'red';
-        this.prevDisplayCell = this.currentDisplayCell;
+        document.getElementById(cell.id).style.backgroundColor = 'red';
+        this.prevCell = cell;
     };
     BorderMazeViewer.prototype.resetMazeView = function () {
-        var displayCell;
         for (var j = 0; j < this.maze.y; j++) {
             for (var i = 0; i < this.maze.x; i++) {
-                displayCell = document.getElementById(i + "," + j);
-                displayCell.style.backgroundColor = 'white';
-                displayCell.line = false;
+                document.getElementById(i + "," + j).style.backgroundColor = 'white';
             }
         }
-        // set up the current display cell ready for if/when we need to display the maze being solved
-        var entryCellId = this.maze.cells[0][0].id;
-        this.currentDisplayCell = document.getElementById(entryCellId);
-        this.prevDisplayCell = null;
+        this.prevCell = null;
         this.mazeDisplayed = false;
     };
     BorderMazeViewer.prototype.supportsRobots = function () {
@@ -908,13 +957,11 @@ function solve() {
         return;
     }
     userChoices = getUserOptionChoices();
-    // reset existing maze before trying to solve (it may already be mid-solve from previous robot)
+    // reset existing maze display before trying to solve (it may already be mid-solve from previous robot)
     mazeViewer.resetMazeView();
-    maze.reset();
     document.getElementById("mazeDisplay").innerHTML = "";
     robot = new Robot();
-    var robotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm, robot);
-    robot.robotAlgorithm = robotAlgorithm;
+    robot.robotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm, robot);
     mazeViewer.showRobotInMaze(robot, maze, parseInt(userChoices.robotDelay));
 }
 function getUserOptionChoices() {

@@ -14,14 +14,15 @@
 
 class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
 
-	currentCell: Cell = null;
+	currentCell: RecursiveBacktrackingCell = null;
 	backtracking: boolean = false;
 
 	constructor(robot: Robot) {
 		super(robot);
+		this.mazeSolvingCellFactory = new RecursiveBacktrackingCellFactory();
 	}
 
-	chooseDirection(cell: Cell): Direction {
+	chooseDirection(cell: RecursiveBacktrackingCell): Direction {
 		this.currentCell = cell;
 		this.currentCell.robotVisited = true;
 	
@@ -65,7 +66,7 @@ class RecursiveBacktrackingRobotAlgorithm extends RobotAlgorithm {
 		var nonVisitedOpenings = [];
 		var lineOpening
 		for (var i = 0; i < openings.length; i++) {
-			var cellThroughThatOpening = this.robot.lookToDirection(openings[i])[0];
+			var cellThroughThatOpening = <RecursiveBacktrackingCell>this.robot.lookToDirection(openings[i])[0];
 			if (!cellThroughThatOpening.robotVisited) {
 				nonVisitedOpenings.push(openings[i]);
 			}

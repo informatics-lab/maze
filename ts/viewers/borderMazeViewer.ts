@@ -10,8 +10,7 @@ class BorderMazeViewer extends MazeViewer {
 	noBorder: string = '1px dotted #CCC';
 	border: string = '1px solid black';
 
-	currentDisplayCell: HTMLTableCellElement;
-	prevDisplayCell: HTMLTableCellElement;
+	prevCell: RecursiveBacktrackingCell;
 
 	constructor(maze: Maze, displayCodes?: boolean) {
 		super(maze);
@@ -57,47 +56,29 @@ class BorderMazeViewer extends MazeViewer {
 		}
 		this.container.appendChild(table);
 		this.mazeDisplayed = true;
-		
-		// set up the current display cell ready for if/when we need to display the maze being solved
-		var entryCellId: string = this.maze.cells[0][0].id;
-		this.currentDisplayCell = <HTMLTableCellElement>document.getElementById(entryCellId);
 	}
 
-	updateRobotDisplay(cell: Cell): void {
-		this.currentDisplayCell = <HTMLTableCellElement>document.getElementById(cell.id);
-
-		if (this.prevDisplayCell) {
-			if (this.prevDisplayCell.line) {
-				this.prevDisplayCell.style.backgroundColor = 'orange';
+	updateRobotDisplay(cell: RecursiveBacktrackingCell): void {
+		if (this.prevCell) {
+			if (this.prevCell.lineDrawn) {
+				document.getElementById(this.prevCell.id).style.backgroundColor = 'orange';
 			} else {
-				this.prevDisplayCell.style.backgroundColor = 'yellow';
+				document.getElementById(this.prevCell.id).style.backgroundColor = 'yellow';
 			}
 		}
 
-		if (cell.lineDrawn) {
-			this.currentDisplayCell.line = true;
-		} else {
-			this.currentDisplayCell.line = false;
-		}
-		this.currentDisplayCell.style.backgroundColor = 'red';
-
-		this.prevDisplayCell = this.currentDisplayCell;
+		document.getElementById(cell.id).style.backgroundColor = 'red';
+		this.prevCell = cell;
 	}
 
 	resetMazeView(): void {
-		var displayCell: HTMLTableCellElement;
 		for (var j = 0; j < this.maze.y; j++) {
 			for (var i = 0; i < this.maze.x; i++) {
-				displayCell = <HTMLTableCellElement>document.getElementById(i + "," + j);
-				displayCell.style.backgroundColor = 'white';
-				displayCell.line = false;
+				document.getElementById(i + "," + j).style.backgroundColor = 'white';
 			}
 		}
 	
-		// set up the current display cell ready for if/when we need to display the maze being solved
-		var entryCellId: string = this.maze.cells[0][0].id
-		this.currentDisplayCell = <HTMLTableCellElement>document.getElementById(entryCellId);
-		this.prevDisplayCell = null;
+		this.prevCell = null;
 		this.mazeDisplayed = false;
 	}
 

@@ -4,20 +4,20 @@ abstract class MazeGenerationAlgorithm {
 
 	constructor() { }
 
-	generateMaze(width: number, height: number): Cell[][] {
-		var emptyMatrix: Cell[][] = this.getEmptyMazeMatrix(width, height);
+	generateMaze(width: number, height: number): MazeGeneratingCell[][] {
+		var emptyMatrix: MazeGeneratingCell[][] = this.getEmptyMazeMatrix(width, height);
 
 		return this.generateMazeInMatrix(emptyMatrix);
 	}
 
-	private getEmptyMazeMatrix(width: number, height: number): Cell[][] {
-		var cells: Cell[][] = [];
+	private getEmptyMazeMatrix(width: number, height: number): MazeGeneratingCell[][] {
+		var cells: MazeGeneratingCell[][] = [];
 	    
 		// populate cells array
 		for (var i = 0; i < width; i++) {
 			cells[i] = [];
 			for (var j = 0; j < height; j++) {
-				var cell = new Cell(i, j);
+				var cell = this.createCell(i, j);
 				cells[i].push(cell);
 			}
 		}
@@ -29,11 +29,13 @@ abstract class MazeGenerationAlgorithm {
 		return cells;
 	}
 
-	protected abstract generateMazeInMatrix(emptyMatrix: Cell[][]): Cell[][]; 
+	protected abstract createCell(i: number, j: number): MazeGeneratingCell;
+
+	protected abstract generateMazeInMatrix(emptyMatrix: MazeGeneratingCell[][]): MazeGeneratingCell[][]; 
 
 	// Check if cell coordinates belong to a cell which is unvisited (no wall openings) and 
 	// is within the outer bounds of the maze
-	protected cellIsInBoundsAndUnvisited(matrix: Cell[][], cellCoords: coordinates): boolean {
+	protected cellIsInBoundsAndUnvisited(matrix: MazeGeneratingCell[][], cellCoords: coordinates): boolean {
 		return cellCoords.x >= 0 && cellCoords.y >= 0 &&
 			cellCoords.x < matrix.length && cellCoords.y < matrix[0].length &&
 			matrix[cellCoords.x][cellCoords.y].openingsCode == 0;

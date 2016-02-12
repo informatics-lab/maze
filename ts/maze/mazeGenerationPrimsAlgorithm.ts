@@ -13,7 +13,11 @@ class MazeGenerationPrimsAlgorithm extends MazeGenerationAlgorithm {
 
 	}
 
-	generateMazeInMatrix(mazeMatrix: Cell[][]): Cell[][] {
+	createCell(i: number, j: number): PrimsCell {
+		return new PrimsCell(i, j);
+	}
+
+	generateMazeInMatrix(mazeMatrix: PrimsCell[][]): Cell[][] {
 		var maxX: number = mazeMatrix.length;
 		var maxY: number = mazeMatrix[0].length;
 
@@ -46,7 +50,7 @@ class MazeGenerationPrimsAlgorithm extends MazeGenerationAlgorithm {
 
 	// Mark a cell at the given coordinates as being in the maze. Then add all it's neighbours to the 
 	// list of 'frontier' cells
-	private addCellToMaze(cellCoords: coordinates, matrix: Cell[][]): void {
+	private addCellToMaze(cellCoords: coordinates, matrix: PrimsCell[][]): void {
 		matrix[cellCoords.x][cellCoords.y].visited = true;
 		this.addFrontier({ x: cellCoords.x - 1, y: cellCoords.y }, matrix);
 		this.addFrontier({ x: cellCoords.x + 1, y: cellCoords.y }, matrix);
@@ -55,7 +59,7 @@ class MazeGenerationPrimsAlgorithm extends MazeGenerationAlgorithm {
 	}
 
 	// Get a list of all the neighbours of a given cell which are already in the maze
-	private getNeighboursAlreadyInMaze(cellCoords: coordinates, matrix: Cell[][]): coordinates[] {
+	private getNeighboursAlreadyInMaze(cellCoords: coordinates, matrix: PrimsCell[][]): coordinates[] {
 		var neighbours = [];
 
 		var x: number = cellCoords.x; 
@@ -79,7 +83,7 @@ class MazeGenerationPrimsAlgorithm extends MazeGenerationAlgorithm {
 
 	// Add a given cell to the list of 'frontier' cells as long as it's not been visited before by the 
 	// algorithm (not in the maze), is within the maze bounds, and is not already a 'frontier' cell
-	private addFrontier(cellCoords: coordinates, matrix: Cell[][]): void {
+	private addFrontier(cellCoords: coordinates, matrix: PrimsCell[][]): void {
 		if (this.cellIsInBoundsAndUnvisited(matrix, cellCoords)) {
 			if (matrix[cellCoords.x][cellCoords.y].frontier == false) {
 				matrix[cellCoords.x][cellCoords.y].frontier = true;

@@ -9,7 +9,11 @@ class MazeGenerationGrowingTreeAlgorithm extends MazeGenerationAlgorithm {
 		super();
 	}
 
-	generateMazeInMatrix(mazeMatrix: Cell[][]): Cell[][] {
+	createCell(i: number, j: number): MazeGeneratingCell {
+		return new MazeGeneratingCell(i, j);
+	}
+
+	generateMazeInMatrix(mazeMatrix: MazeGeneratingCell[][]): MazeGeneratingCell[][] {
 		var maxX = mazeMatrix.length;
 		var maxY = mazeMatrix[0].length;
 

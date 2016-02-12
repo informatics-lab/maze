@@ -72,15 +72,13 @@ function solve() {
 
 	userChoices = getUserOptionChoices();
 	
-	// reset existing maze before trying to solve (it may already be mid-solve from previous robot)
+	// reset existing maze display before trying to solve (it may already be mid-solve from previous robot)
 	mazeViewer.resetMazeView();
-	maze.reset();
 	document.getElementById("mazeDisplay").innerHTML = "";
 	
 	robot = new Robot();
-	var robotAlgorithm: RobotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm, robot);
-	robot.robotAlgorithm = robotAlgorithm;
-
+	robot.robotAlgorithm = getRobotAlgorithm(userChoices.robotAlgorithm, robot);
+	
 	mazeViewer.showRobotInMaze(robot, maze, parseInt(userChoices.robotDelay));
 }
 
